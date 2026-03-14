@@ -1,0 +1,107 @@
+@model List<QL_HieuSuat.Models.ViewModels.XacNhanTienDoItemViewModel>
+
+@{
+    ViewData["Title"] = "Xác nhận tiến độ";
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h3 class="mb-1">Xác nhận tiến độ công việc</h3>
+            <p class="text-muted mb-0">Dành cho trưởng nhóm và trưởng phòng theo phạm vi phụ trách.</p>
+        </div>
+    </div>
+
+    @if (Model == null || !Model.Any())
+    {
+        <div class="alert alert-info">
+            Hiện không có công việc nào đang ở trạng thái chờ duyệt trong phạm vi quản lý của bạn.
+        </div>
+    }
+    else
+    {
+        <div class="card shadow-sm">
+            <div class="card-header bg-dark text-white">
+                Danh sách công việc chờ duyệt (@Model.Count)
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover table-bordered mb-0 align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Công việc</th>
+                                <th>Dự án</th>
+                                <th>Người nhận</th>
+                                <th>Tiến độ mới nhất</th>
+                                <th>Ưu tiên</th>
+                                <th>Hạn hoàn thành</th>
+                                <th class="text-center">Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model)
+                            {
+                                var progress = Math.Max(0, Math.Min(100, item.TienDoPhanTram));
+                                var dueClass = item.HanHoanThanh.HasValue && item.HanHoanThanh.Value.Date < DateTime.Today
+                                    ? "text-danger fw-semibold"
+                                    : "text-body";
+
+                                <tr>
+                                    <td>
+                                        <a asp-action="Details"
+                                           asp-route-id="@item.MaCongViec"
+                                           class="fw-semibold text-decoration-none">
+                                            @item.TenCongViec
+                                        </a>
+                                    </td>
+                                    <td>@(string.IsNullOrWhiteSpace(item.TenDuAn) ? "-" : item.TenDuAn)</td>
+                                    <td>
+                                        @if (item.NguoiNhan.Any())
+                                        {
+                                            foreach (var nguoi in item.NguoiNhan)
+                                            {
+                                                <span class="badge bg-primary me-1 mb-1">@nguoi</span>
+                                            }
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">Chưa có người nhận</span>
+                                        }
+                                    </td>
+                                    <td style="min-width: 180px;">
+                                        <div class="progress" style="height: 18px;">
+                                            <div class="progress-bar bg-success" role="progressbar" style="width:@progress%">
+                                                @Math.Round(progress)%
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>@(item.MucUuTien?.ToString() ?? "-")</td>
+                                    <td class="@dueClass">@(item.HanHoanThanh?.ToString("dd/MM/yyyy") ?? "-")</td>
+                                    <td class="text-center" style="min-width: 180px;">
+                                        <a asp-action="Approve"
+                                           asp-route-id="@item.MaCongViec"
+                                           class="btn btn-success btn-sm me-1">
+                                            Duyệt
+                                        </a>
+
+                                        <form asp-action="RequestComplete"
+                                              method="post"
+                                              class="d-inline">
+                                            <input type="hidden" name="id" value="@item.MaCongViec" />
+                                            <input type="hidden" name="status" value="false" />
+                                            <button type="submit"
+                                                    class="btn btn-outline-warning btn-sm"
+                                                    onclick="return confirm('Trả công việc về trạng thái đang thực hiện?');">
+                                                Trả lại
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    }
+</div>

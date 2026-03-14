@@ -1,0 +1,62 @@
+﻿@model QL_HieuSuat.Models.Nhanvien
+
+@{
+    ViewData["Title"] = "Xóa nhân viên";
+}
+
+<div class="container mt-4">
+
+    <div class="card shadow border-danger">
+
+        <div class="card-header bg-danger text-white">
+            <h5 class="mb-0">⚠ Xác nhận xóa nhân viên</h5>
+        </div>
+
+        <div class="card-body">
+
+            <div class="alert alert-warning">
+                Bạn có chắc chắn muốn xóa nhân viên này không?
+                Hành động này <strong>không thể hoàn tác</strong>.
+            </div>
+
+            <div class="row">
+
+                <div class="col-md-6">
+                    <p><strong>Họ tên:</strong> @Model.Hoten</p>
+                    <p><strong>Ngày sinh:</strong> @Model.Ngaysinh?.ToString("dd/MM/yyyy")</p>
+                    <p><strong>Giới tính:</strong> @Model.Gioitinh</p>
+                    <p><strong>Email:</strong> @Model.Email</p>
+                    <p><strong>SĐT:</strong> @Model.Sdt</p>
+                </div>
+
+                <div class="col-md-6">
+                    <p><strong>CCCD:</strong> @Model.Cccd</p>
+                    <p><strong>Địa chỉ:</strong> @Model.Diachi</p>
+                    <p><strong>Ngày vào làm:</strong> @Model.Ngayvaolam?.ToString("dd/MM/yyyy")</p>
+                    <p><strong>Trạng thái:</strong> @Model.Trangthai</p>
+                    <p><strong>Phòng ban:</strong> @Model.MaphongbanNavigation?.Tenphongban</p>
+                </div>
+
+            </div>
+
+            <hr />
+
+            <form asp-action="Delete">
+                <input type="hidden" asp-for="Manhanvien" />
+
+                <div class="d-flex justify-content-between">
+                    <a asp-action="Index" class="btn btn-secondary">
+                        ⬅ Quay lại
+                    </a>
+
+                    <button type="submit" class="btn btn-danger">
+                        🗑 Xác nhận xóa
+                    </button>
+                </div>
+            </form>
+
+        </div>
+
+    </div>
+
+</div>

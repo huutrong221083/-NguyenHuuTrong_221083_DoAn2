@@ -1,0 +1,65 @@
+﻿@model QL_HieuSuat.Models.Phongban
+
+@{
+    ViewData["Title"] = "Xóa phòng ban";
+}
+
+<div class="container mt-4">
+
+    <div class="card shadow border-danger">
+
+        <div class="card-header bg-danger text-white">
+            <h5 class="mb-0">⚠ Xác nhận xóa phòng ban</h5>
+        </div>
+
+        <div class="card-body">
+
+            <div class="alert alert-warning">
+                Bạn có chắc chắn muốn xóa phòng ban này không?
+                Nếu phòng ban còn nhân viên, hệ thống có thể báo lỗi.
+                <strong>Hành động này không thể hoàn tác.</strong>
+            </div>
+
+            <div class="row">
+
+                <div class="col-md-6">
+                    <p><strong>Tên phòng ban:</strong> @Model.Tenphongban</p>
+                </div>
+
+                <div class="col-md-6">
+                    <p>
+                        <strong>Trưởng phòng:</strong>
+                        @(Model.MatruongphongNavigation?.Hoten ?? "Chưa có")
+                    </p>
+                </div>
+
+            </div>
+
+            <div class="mt-3">
+                <p><strong>Mô tả:</strong></p>
+                <div class="border rounded p-3 bg-light">
+                    @(Model.Mota ?? "Không có mô tả")
+                </div>
+            </div>
+
+            <hr />
+
+            <form asp-action="Delete" asp-route-id="@Model.Maphongban" method="post">
+                <input type="hidden" asp-for="Maphongban" />
+
+                <div class="d-flex justify-content-between">
+                    <a asp-action="Index" class="btn btn-secondary">
+                        ⬅ Quay lại
+                    </a>
+
+                    <button type="submit" class="btn btn-danger">
+                        🗑 Xác nhận xóa
+                    </button>
+                </div>
+            </form>
+
+        </div>
+
+    </div>
+
+</div>

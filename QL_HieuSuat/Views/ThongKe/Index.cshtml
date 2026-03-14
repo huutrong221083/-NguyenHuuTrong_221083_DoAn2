@@ -1,0 +1,463 @@
+@{
+    ViewData["Title"] = "Thống kê hiệu suất";
+
+    var qNam = Context.Request.Query["nam"].ToString();
+    var qThang = Context.Request.Query["thang"].ToString();
+    var qPhongBan = Context.Request.Query["phongban"].ToString();
+    var qNhom = Context.Request.Query["nhom"].ToString();
+}
+
+<div class="container-fluid mt-4 thongke-page">
+    <div class="d-flex justify-content-between align-items-start flex-wrap gap-3 mb-4">
+        <div>
+            <h3 class="fw-bold mb-1">Thống kê hiệu suất tổng quan</h3>
+            <p class="text-muted mb-0">Theo dõi KPI, tiến độ công việc và xu hướng nguồn lực trên một màn hình.</p>
+        </div>
+        <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#exportReportModal">
+            Xuất file báo cáo
+        </button>
+    </div>
+
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-body">
+            <form id="formFilter" method="get" asp-action="Index">
+                <div class="row g-3 align-items-end">
+                    <div class="col-md-3">
+                        <label class="form-label mb-1">Năm</label>
+                        <select name="nam" class="form-select auto-filter">
+                            <option value="" selected="@string.IsNullOrWhiteSpace(qNam)">Tất cả</option>
+                            <option value="2023" selected="@(qNam == "2023")">2023</option>
+                            <option value="2024" selected="@(qNam == "2024")">2024</option>
+                            <option value="2025" selected="@(qNam == "2025")">2025</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-3">
+                        <label class="form-label mb-1">Tháng</label>
+                        <select name="thang" class="form-select auto-filter">
+                            <option value="" selected="@string.IsNullOrWhiteSpace(qThang)">Tất cả</option>
+                            @for (int i = 1; i <= 12; i++)
+                            {
+                                <option value="@i" selected="@(qThang == i.ToString())">Tháng @i</option>
+                            }
+                        </select>
+                    </div>
+
+                    <div class="col-md-3">
+                        <label class="form-label mb-1">Phòng ban</label>
+                        <select name="phongban" class="form-select auto-filter">
+                            <option value="" selected="@string.IsNullOrWhiteSpace(qPhongBan)">Tất cả</option>
+                            @foreach (var pb in ViewBag.PhongBan)
+                            {
+                                <option value="@pb.Maphongban" selected="@(qPhongBan == pb.Maphongban.ToString())">@pb.Tenphongban</option>
+                            }
+                        </select>
+                    </div>
+
+                    <div class="col-md-3">
+                        <label class="form-label mb-1">Nhóm</label>
+                        <select name="nhom" class="form-select auto-filter">
+                            <option value="" selected="@string.IsNullOrWhiteSpace(qNhom)">Tất cả</option>
+                            @foreach (var n in ViewBag.Nhom)
+                            {
+                                <option value="@n.Manhom" selected="@(qNhom == n.Manhom.ToString())">@n.Tennhom</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-lg-2">
+            <div class="metric-card metric-blue">
+                <div class="metric-value">@ViewBag.TongNhanVien</div>
+                <div class="metric-label">Nhân viên</div>
+            </div>
+        </div>
+        <div class="col-6 col-lg-2">
+            <div class="metric-card metric-green">
+                <div class="metric-value">@ViewBag.TongDuAn</div>
+                <div class="metric-label">Dự án</div>
+            </div>
+        </div>
+        <div class="col-6 col-lg-2">
+            <div class="metric-card metric-yellow">
+                <div class="metric-value">@ViewBag.TongCongViec</div>
+                <div class="metric-label">Công việc</div>
+            </div>
+        </div>
+        <div class="col-6 col-lg-2">
+            <div class="metric-card metric-red">
+                <div class="metric-value">@ViewBag.TongNhom</div>
+                <div class="metric-label">Nhóm</div>
+            </div>
+        </div>
+        <div class="col-12 col-lg-4">
+            <div class="metric-card metric-purple metric-ai">
+                <div class="metric-value">@ViewBag.AIKPI%</div>
+                <div class="metric-label">AI dự đoán KPI tháng tới</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-3 mb-3 chart-row-main">
+        <div class="col-xl-4 col-lg-5 col-12">
+            <div class="card chart-card">
+                <div class="card-header">Trạng thái công việc</div>
+                <div class="card-body chart-body chart-h-260"><canvas id="chartTrangThai"></canvas></div>
+            </div>
+        </div>
+        <div class="col-xl-8 col-lg-7 col-12">
+            <div class="card chart-card">
+                <div class="card-header">KPI trung bình theo tháng</div>
+                <div class="card-body chart-body chart-h-320"><canvas id="chartKPI"></canvas></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-3 mb-3 chart-row-main">
+        <div class="col-xl-6 col-lg-6 col-12">
+            <div class="card chart-card">
+                <div class="card-header">Top nhân viên theo KPI</div>
+                <div class="card-body chart-body chart-h-320"><canvas id="chartTopNV"></canvas></div>
+            </div>
+        </div>
+        <div class="col-xl-6 col-lg-6 col-12">
+            <div class="card chart-card">
+                <div class="card-header">Thống kê kỹ năng</div>
+                <div class="card-body chart-body chart-h-320"><canvas id="chartKyNang"></canvas></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-3 mb-4 chart-row-main">
+        <div class="col-xl-6 col-lg-6 col-12">
+            <div class="card chart-card">
+                <div class="card-header">Phân bố công việc theo phòng ban</div>
+                <div class="card-body chart-body chart-h-320"><canvas id="chartPhong"></canvas></div>
+            </div>
+        </div>
+        <div class="col-xl-6 col-lg-6 col-12">
+            <div class="card chart-card">
+                <div class="card-header">Phân bố công việc theo nhóm</div>
+                <div class="card-body chart-body chart-h-320"><canvas id="chartNhom"></canvas></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-header bg-white fw-semibold">Tiến độ dự án</div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Dự án</th>
+                            <th style="min-width: 260px;">Tiến độ</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var da in ViewBag.DuAnTienDo)
+                        {
+                            var percent = da.TongCV == 0 ? 0 : (da.HoanThanh * 100 / da.TongCV);
+                            <tr>
+                                <td class="fw-semibold">@da.TenDuAn</td>
+                                <td>
+                                    <div class="progress" style="height: 1rem;">
+                                        <div class="progress-bar bg-success" style="width:@percent%">@percent%</div>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-header bg-white fw-semibold">Báo cáo hiệu suất nhân sự</div>
+        <div class="card-body">
+            <div class="row g-3 mb-4">
+                <div class="col-md-3 col-6">
+                    <div class="report-metric report-slate">
+                        <div class="report-metric-label">Nhân sự có dữ liệu KPI</div>
+                        <div class="report-metric-value">@ViewBag.BaoCaoSoNhanVien</div>
+                    </div>
+                </div>
+                <div class="col-md-3 col-6">
+                    <div class="report-metric report-teal">
+                        <div class="report-metric-label">Đạt mức tốt (>= 80)</div>
+                        <div class="report-metric-value">@ViewBag.BaoCaoSoDatMucTot</div>
+                    </div>
+                </div>
+                <div class="col-md-3 col-6">
+                    <div class="report-metric report-amber">
+                        <div class="report-metric-label">Tỷ lệ đạt mức tốt</div>
+                        <div class="report-metric-value">@ViewBag.BaoCaoTyLeDatMucTot%</div>
+                    </div>
+                </div>
+                <div class="col-md-3 col-6">
+                    <div class="report-metric report-rose">
+                        <div class="report-metric-label">Nhân sự cần cải thiện</div>
+                        <div class="report-metric-value">@ViewBag.BaoCaoSoCanhBao</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row g-3">
+                <div class="col-lg-4">
+                    <div class="alert alert-warning h-100 mb-0">
+                        <div class="fw-semibold mb-2">Danh sách cần ưu tiên hỗ trợ</div>
+                        @if (ViewBag.BaoCaoCanhBaoNhanVien != null && ViewBag.BaoCaoCanhBaoNhanVien.Count > 0)
+                        {
+                            <ul class="mb-0 ps-3">
+                                @foreach (var nv in ViewBag.BaoCaoCanhBaoNhanVien)
+                                {
+                                    <li>@nv.TenNhanVien (@nv.DiemTrungBinh điểm)</li>
+                                }
+                            </ul>
+                        }
+                        else
+                        {
+                            <div class="mb-0">Chưa có nhân sự ở ngưỡng cảnh báo.</div>
+                        }
+                    </div>
+                </div>
+
+                <div class="col-lg-8">
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>STT</th>
+                                    <th>Nhân viên</th>
+                                    <th>Phòng ban</th>
+                                    <th>KPI TB</th>
+                                    <th>KPI gần nhất</th>
+                                    <th>Số kỳ</th>
+                                    <th>Xếp loại</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @{ int stt = 1; }
+                                @foreach (var nv in ViewBag.BaoCaoNhanVien)
+                                {
+                                    var diemTB = Convert.ToDouble(nv.DiemTrungBinh);
+                                    var xepLoai = diemTB >= 85 ? "Xuất sắc" : diemTB >= 70 ? "Khá" : diemTB >= 60 ? "Trung bình" : "Cần cải thiện";
+                                    var badge = diemTB >= 85 ? "bg-success" : diemTB >= 70 ? "bg-primary" : diemTB >= 60 ? "bg-warning text-dark" : "bg-danger";
+
+                                    <tr>
+                                        <td>@stt</td>
+                                        <td class="fw-semibold">@nv.TenNhanVien</td>
+                                        <td>@nv.PhongBan</td>
+                                        <td>@nv.DiemTrungBinh</td>
+                                        <td>@nv.DiemGanNhat</td>
+                                        <td>@nv.SoKyDanhGia</td>
+                                        <td><span class="badge @badge">@xepLoai</span></td>
+                                    </tr>
+
+                                    stt++;
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="exportReportModal" tabindex="-1" aria-labelledby="exportReportModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exportReportModalLabel">Tùy chọn xuất báo cáo</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <form method="get" asp-action="ExportReport">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Loại file</label>
+                        <select class="form-select" name="format" required>
+                            <option value="excel" selected>Excel (.xlsx)</option>
+                            <option value="pdf">PDF (.pdf)</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-2">
+                        <label class="form-label">Loại báo cáo</label>
+                        <select class="form-select" name="reportType" required>
+                            <option value="hieu-suat-nhan-vien" selected>Hiệu suất nhân viên</option>
+                            <option value="tien-do-du-an">Tiến độ dự án</option>
+                            <option value="trang-thai-cong-viec">Trạng thái công việc</option>
+                            <option value="thong-ke-ky-nang">Thống kê kỹ năng</option>
+                            <option value="tong-quan-he-thong">Tổng quan hệ thống</option>
+                        </select>
+                    </div>
+
+                    <div class="small text-muted">
+                        Báo cáo sẽ áp dụng theo bộ lọc đang chọn (năm, tháng, phòng ban, nhóm) khi phù hợp.
+                    </div>
+
+                    <input type="hidden" name="nam" value="@qNam" />
+                    <input type="hidden" name="thang" value="@qThang" />
+                    <input type="hidden" name="phongban" value="@qPhongBan" />
+                    <input type="hidden" name="nhom" value="@qNhom" />
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-success">Xuất báo cáo</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+    const baseFont = {
+        family: "Segoe UI, Tahoma, sans-serif",
+        size: 12
+    };
+
+    const gridColor = "rgba(120,130,150,0.15)";
+
+    const commonOptions = {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                labels: {
+                    font: baseFont
+                }
+            }
+        }
+    };
+
+    new Chart(document.getElementById("chartTrangThai"), {
+        type: "doughnut",
+        data: {
+            labels: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.TrangThaiLabels)),
+            datasets: [{
+                data: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.TrangThaiData)),
+                backgroundColor: ["#22c55e", "#f59e0b", "#ef4444", "#3b82f6", "#8b5cf6"]
+            }]
+        },
+        options: {
+            ...commonOptions,
+            cutout: "62%"
+        }
+    });
+
+    new Chart(document.getElementById("chartKPI"), {
+        type: "line",
+        data: {
+            labels: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.Thang)),
+            datasets: [{
+                label: "KPI trung bình",
+                data: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.DiemKPI)),
+                borderWidth: 3,
+                borderColor: "#2d7ff9",
+                backgroundColor: "rgba(45,127,249,0.14)",
+                fill: true,
+                tension: 0.35,
+                pointRadius: 2
+            }]
+        },
+        options: {
+            ...commonOptions,
+            scales: {
+                y: { beginAtZero: true, grid: { color: gridColor } },
+                x: { grid: { color: "transparent" } }
+            }
+        }
+    });
+
+    new Chart(document.getElementById("chartTopNV"), {
+        type: "bar",
+        data: {
+            labels: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.TopNVLabels)),
+            datasets: [{
+                label: "Điểm KPI",
+                data: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.TopNVData)),
+                backgroundColor: "#22c55e"
+            }]
+        },
+        options: {
+            ...commonOptions,
+            scales: {
+                y: { beginAtZero: true, grid: { color: gridColor } },
+                x: { grid: { color: "transparent" } }
+            }
+        }
+    });
+
+    new Chart(document.getElementById("chartKyNang"), {
+        type: "bar",
+        data: {
+            labels: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.KyNangLabels)),
+            datasets: [{
+                label: "Số nhân viên",
+                data: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.KyNangData)),
+                backgroundColor: "#8b5cf6"
+            }]
+        },
+        options: {
+            ...commonOptions,
+            scales: {
+                y: { beginAtZero: true, grid: { color: gridColor } },
+                x: { grid: { color: "transparent" } }
+            }
+        }
+    });
+
+    new Chart(document.getElementById("chartPhong"), {
+        type: "bar",
+        data: {
+            labels: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.PhongLabels)),
+            datasets: [{
+                label: "Số công việc",
+                data: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.PhongData)),
+                backgroundColor: "#f59e0b"
+            }]
+        },
+        options: {
+            ...commonOptions,
+            scales: {
+                y: { beginAtZero: true, grid: { color: gridColor } },
+                x: { grid: { color: "transparent" } }
+            }
+        }
+    });
+
+    new Chart(document.getElementById("chartNhom"), {
+        type: "bar",
+        data: {
+            labels: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.NhomLabels)),
+            datasets: [{
+                label: "Số công việc",
+                data: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.NhomData)),
+                backgroundColor: "#ef4444"
+            }]
+        },
+        options: {
+            ...commonOptions,
+            scales: {
+                y: { beginAtZero: true, grid: { color: gridColor } },
+                x: { grid: { color: "transparent" } }
+            }
+        }
+    });
+
+    document.querySelectorAll(".auto-filter").forEach((select) => {
+        select.addEventListener("change", () => {
+            document.getElementById("formFilter").submit();
+        });
+    });
+</script>

@@ -1,0 +1,122 @@
+﻿@model QL_HieuSuat.Models.Nhanvien
+
+@{
+    ViewData["Title"] = "Chi tiết nhân viên";
+}
+
+<div class="container mt-4">
+
+    <div class="card shadow">
+        <div class="card-header bg-primary text-white">
+            <h4 class="mb-0">👤 Chi tiết nhân viên</h4>
+        </div>
+
+        <div class="card-body">
+
+            <div class="row">
+
+                <!-- Cột trái -->
+                <div class="col-md-6">
+
+                    <div class="mb-3">
+                        <label class="fw-bold">Họ tên:</label>
+                        <div class="fs-5 text-primary fw-semibold">
+                            @Model.Hoten
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="fw-bold">Ngày sinh:</label>
+                        <div>@Model.Ngaysinh</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="fw-bold">Giới tính:</label>
+                        <div class="fs-5 text-primary fw-semibold"
+                             style="text-transform: uppercase;">
+                            @Model.Gioitinh
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="fw-bold">CCCD:</label>
+                        <div>@Model.Cccd</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="fw-bold">Địa chỉ:</label>
+                        <div>@Model.Diachi</div>
+                    </div>
+
+                </div>
+
+                <!-- Cột phải -->
+                <div class="col-md-6">
+
+                    <div class="mb-3">
+                        <label class="fw-bold">Email:</label>
+                        <div>@Model.Email</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="fw-bold">SĐT:</label>
+                        <div>@Model.Sdt</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="fw-bold">Ngày vào làm:</label>
+                        <div>@Model.Ngayvaolam</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="fw-bold">Số năm kinh nghiệm:</label>
+                        <div>@Model.Sonamkinhnghiem năm</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="fw-bold">Điểm KPI tích lũy:</label>
+                        <div>
+                            <span class="badge bg-success fs-6">
+                                @Model.DiemkpiTichluy
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="fw-bold">Phòng ban:</label>
+                        <div>
+                            @if (Model.MaphongbanNavigation != null)
+                            {
+                                <span class="text-primary fw-semibold">
+                                    @Model.MaphongbanNavigation.Tenphongban
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="text-muted">Chưa phân phòng</span>
+                            }
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="card-footer text-end">
+            <a asp-action="Edit"
+               asp-route-id="@Model.Manhanvien"
+               class="btn btn-warning">
+                ✏ Chỉnh sửa
+            </a>
+
+            <a asp-action="Index"
+               class="btn btn-secondary">
+                ← Quay lại
+            </a>
+        </div>
+
+    </div>
+
+</div>

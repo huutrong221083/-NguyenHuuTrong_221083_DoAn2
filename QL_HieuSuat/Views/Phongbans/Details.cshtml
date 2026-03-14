@@ -1,0 +1,149 @@
+﻿@model QL_HieuSuat.Models.Phongban
+
+@{
+    ViewData["Title"] = "Chi tiết phòng ban";
+}
+
+<div class="container mt-4">
+
+    <div class="card shadow">
+        <div class="card-header bg-primary text-white">
+            <h4 class="mb-0">🏢 Chi tiết phòng ban</h4>
+        </div>
+
+        <div class="card-body">
+
+            <div class="row mb-3">
+                <div class="col-md-4 fw-bold">Tên phòng:</div>
+                <div class="col-md-8">
+                    <span class="fs-5">@Model.Tenphongban</span>
+                </div>
+            </div>
+
+            <div class="row mb-3">
+                <div class="col-md-4 fw-bold">Mô tả:</div>
+                <div class="col-md-8">
+                    @Model.Mota
+                </div>
+            </div>
+
+            <div class="row mb-3">
+                <div class="col-md-4 fw-bold">Mã trưởng phòng:</div>
+                <div class="col-md-8">
+                    @if (Model.MatruongphongNavigation != null)
+                    {
+                        <span class="text-primary fw-semibold">
+                            @Model.MatruongphongNavigation.Hoten
+                        </span>
+                    }
+                    else
+                    {
+                        <span class="text-muted">Chưa có trưởng phòng</span>
+                    }
+                </div>
+            </div>
+
+            <div class="row mb-3">
+                <div class="col-md-4 fw-bold">Số nhân viên:</div>
+                <div class="col-md-8">
+                    <span class="badge bg-success fs-6">
+                        @(Model.Nhanviens?.Count ?? 0)
+                    </span>
+                </div>
+            </div>
+
+        </div>
+
+        
+
+        <h5 class="mt-4">👥 Danh sách nhân viên trong phòng</h5>
+
+        @if (Model.Nhanviens != null && Model.Nhanviens.Any())
+        {
+            <table class="table table-bordered table-hover mt-3">
+                <thead class="table-dark text-center">
+                    <tr>
+                        <th>Mã nhân viên</th>
+                        <th>Họ tên</th>
+                        <th>Giới tính</th>
+                        <th width="150px">Thao tác</th>
+                    </tr>
+                </thead>
+
+                <tbody class="text-center">
+                    @foreach (var nv in Model.Nhanviens)
+                    {
+                        <tr>
+                            <td>@nv.Manhanvien</td>
+
+                            <td>
+                                <a asp-controller="NhanViens"
+                                   asp-action="Details"
+                                   asp-route-id="@nv.Manhanvien"
+                                   class="text-decoration-none fw-semibold text-primary">
+                                    @nv.Hoten
+                                </a>
+                            </td>
+
+                            <td>@nv.Gioitinh</td>
+
+                            <td>
+
+                                <form asp-controller="NhanViens"
+                                      asp-action="RemoveFromPhong"
+                                      method="post"
+                                      style="display:inline">
+
+                                    <input type="hidden"
+                                           name="manhanvien"
+                                           value="@nv.Manhanvien" />
+
+                                    <input type="hidden"
+                                           name="maphongban"
+                                           value="@Model.Maphongban" />
+
+                                    <button type="submit"
+                                            class="btn btn-danger btn-sm"
+                                            onclick="return confirm('Bạn có chắc muốn xóa nhân viên khỏi phòng ban?')">
+                                        ❌ Xóa khỏi phòng
+                                    </button>
+
+                                </form>
+
+                            </td>
+
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+        else
+        {
+            <div class="alert alert-warning mt-3">
+                Phòng ban này chưa có nhân viên.
+            </div>
+        }
+
+
+        <div class="card-footer text-end">
+            <a asp-controller="Nhanviens"
+               asp-action="AddToPhong"
+               asp-route-maphongban="@Model.Maphongban"
+               class="btn btn-success">
+                ➕ Thêm nhân viên
+            </a>
+
+            <a asp-action="Edit"
+               asp-route-id="@Model.Maphongban"
+               class="btn btn-warning">
+                ✏ Chỉnh sửa
+            </a>
+
+            <a asp-action="Index"
+               class="btn btn-secondary">
+                ← Quay lại
+            </a>
+        </div>
+    </div>
+
+</div>

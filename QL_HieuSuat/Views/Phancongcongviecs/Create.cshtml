@@ -1,0 +1,294 @@
+﻿@model QL_HieuSuat.Models.Phancongcongviec
+
+@{
+    var canAssignNhanVien = ViewBag.CanAssignNhanVien == true;
+    var canAssignNhom = ViewBag.CanAssignNhom == true;
+    var canAssignPhongBan = ViewBag.CanAssignPhongBan == true;
+}
+
+<h3 class="mb-4">Phân công công việc</h3>
+
+<div class="card shadow p-4">
+
+    @if (!string.IsNullOrWhiteSpace(ViewBag.ScopeDescription as string))
+    {
+        <div class="alert alert-info">
+            @ViewBag.ScopeDescription
+        </div>
+    }
+
+    <form asp-action="Create">
+        @Html.AntiForgeryToken()
+
+        <input type="hidden" asp-for="Macongviec" value="@ViewBag.MaCongViec" />
+        <input type="hidden" name="maduan" value="@ViewBag.MaDuAn" />
+
+        <!-- LOẠI ĐỐI TƯỢNG -->
+        <div class="form-group mb-3">
+            <label class="fw-bold">Phân công cho</label>
+
+            <select id="loaiDoiTuong" name="Loaidoituong" class="form-control">
+                <option value="">-- Chọn loại --</option>
+                @if (canAssignNhanVien)
+                {
+                    <option value="NhanVien">Cá nhân</option>
+                }
+                @if (canAssignNhom)
+                {
+                    <option value="Nhom">Nhóm</option>
+                }
+                @if (canAssignPhongBan)
+                {
+                    <option value="PhongBan">Phòng ban</option>
+                }
+            </select>
+
+            @if (!canAssignNhanVien && !canAssignNhom && !canAssignPhongBan)
+            {
+                <small class="text-danger">Bạn không có phạm vi phân công hợp lệ.</small>
+            }
+        </div>
+
+
+        <!-- NHÂN VIÊN -->
+        @* <div id="nhanvienBox" class="mt-3" style="display:none">
+
+            <label class="fw-bold">Chọn nhân viên</label>
+
+            <input type="text" id="searchNhanVien"
+                   class="form-control mb-2"
+                   placeholder="Tìm nhân viên...">
+
+            <div class="list-box">
+
+                @foreach (var nv in (List<QL_HieuSuat.Models.Nhanvien>)ViewBag.NhanViens)
+                {
+                    var pcDangLam = nv.Phancongcongviecs?
+                    .Where(p => p.Ngayketthucthucte == null)
+                    .FirstOrDefault();
+
+                    <div class="form-check nhanvien-item">
+
+                        <input class="form-check-input"
+                               type="checkbox"
+                               name="selectedNhanVien"
+                               value="@nv.Manhanvien" />
+
+                        <label class="form-check-label">
+
+                            <b>@nv.Hoten</b>
+
+                            @if (pcDangLam != null)
+                            {
+                                <span style="color:#888">
+                                    (Dự án: @pcDangLam.MacongviecNavigation?.MaduanNavigation?.Tenduan
+                                    /
+                                    Công việc: @pcDangLam.MacongviecNavigation?.Tencongviec)
+                                </span>
+                            }
+
+                        </label>
+
+                    </div>
+                }
+
+            </div>
+        </div> *@
+        @if (canAssignNhanVien)
+        {
+        <div id="nhanvienBox" class="mt-3" style="display:none">
+
+            <label class="fw-bold">Chọn nhân viên thực hiện</label>
+
+            <input type="text" id="searchNhanVien"
+                   class="form-control mb-2"
+                   placeholder="Tìm nhân viên...">
+
+            <div class="list-box">
+
+                @foreach (var nv in (List<QL_HieuSuat.Models.Nhanvien>)ViewBag.NhanViens)
+                {
+                    <div class="form-check nhanvien-item">
+
+                        <input class="form-check-input"
+                               type="checkbox"
+                               name="selectedNhanVien"
+                               value="@nv.Manhanvien" />
+
+                        <label class="form-check-label">
+                            <b>@nv.Hoten</b>
+                        </label>
+
+                    </div>
+                }
+
+            </div>
+
+            <!-- NGƯỜI DUYỆT -->
+            <div class="mt-3">
+
+                <label class="fw-bold">Người duyệt tiến độ</label>
+
+                <select name="nguoiDuyet" class="form-control">
+
+                    <option value="">-- Chọn người duyệt --</option>
+
+                    @foreach (var nv in (List<QL_HieuSuat.Models.Nhanvien>)ViewBag.NhanViens)
+                    {
+                        <option value="@nv.Manhanvien">
+                            @nv.Hoten
+                        </option>
+                    }
+
+                </select>
+
+            </div>
+
+        </div>
+    }
+
+
+        <!-- NHÓM -->
+    @if (canAssignNhom)
+    {
+    <div id="nhomBox" class="mt-3" style="display:none">
+
+            <label class="fw-bold">Chọn nhóm</label>
+
+            <div class="list-box">
+
+                @foreach (var nhom in ViewBag.Nhoms)
+                {
+                    <div class="form-check">
+
+                        <input class="form-check-input"
+                               type="checkbox"
+                               name="selectedNhom"
+                               value="@nhom.Manhom" />
+
+                        <label class="form-check-label">
+                            @nhom.Tennhom
+                        </label>
+
+                    </div>
+                }
+
+            </div>
+        </div>
+        }
+
+
+        <!-- PHÒNG BAN -->
+        @if (canAssignPhongBan)
+        {
+        <div id="phongbanBox" class="mt-3" style="display:none">
+
+            <label class="fw-bold">Chọn phòng ban</label>
+
+            <div class="list-box">
+
+                @foreach (var pb in ViewBag.Phongbans)
+                {
+                    <div class="form-check">
+
+                        <input class="form-check-input"
+                               type="checkbox"
+                               name="selectedPhongBan"
+                               value="@pb.Maphongban" />
+
+                        <label class="form-check-label">
+                            @pb.Tenphongban
+                        </label>
+
+                    </div>
+                }
+
+            </div>
+        </div>
+        }
+
+
+        <!-- NGÀY -->
+        <div class="row mt-4">
+
+            <div class="col-md-6">
+                <label>Ngày bắt đầu dự kiến</label>
+                <input asp-for="Ngaybatdaudukien" class="form-control" type="date" />
+            </div>
+
+            <div class="col-md-6">
+                <label>Ngày kết thúc dự kiến</label>
+                <input asp-for="Ngayketthucdukien" class="form-control" type="date" />
+            </div>
+
+        </div>
+
+
+        <div class="mt-4">
+
+            <button type="submit" class="btn btn-success">
+                Phân công
+            </button>
+
+            <a asp-controller="Congviecs"
+               asp-action="Details"
+               asp-route-id="@ViewBag.MaCongViec"
+               class="btn btn-secondary">
+                Quay lại
+            </a>
+
+        </div>
+
+    </form>
+
+</div>
+
+<script>
+
+    var loaiDoiTuongSelect = document.getElementById("loaiDoiTuong");
+    var nhanvienBox = document.getElementById("nhanvienBox");
+    var nhomBox = document.getElementById("nhomBox");
+    var phongbanBox = document.getElementById("phongbanBox");
+
+    function toggleAssignPanels() {
+        if (nhanvienBox) nhanvienBox.style.display = "none";
+        if (nhomBox) nhomBox.style.display = "none";
+        if (phongbanBox) phongbanBox.style.display = "none";
+
+        if (!loaiDoiTuongSelect) return;
+
+        if (loaiDoiTuongSelect.value == "NhanVien" && nhanvienBox)
+            nhanvienBox.style.display = "block";
+
+        if (loaiDoiTuongSelect.value == "Nhom" && nhomBox)
+            nhomBox.style.display = "block";
+
+        if (loaiDoiTuongSelect.value == "PhongBan" && phongbanBox)
+            phongbanBox.style.display = "block";
+    }
+
+    if (loaiDoiTuongSelect) {
+        loaiDoiTuongSelect.addEventListener("change", toggleAssignPanels);
+        toggleAssignPanels();
+    }
+
+    /* SEARCH NHÂN VIÊN */
+
+    var searchNhanVienInput = document.getElementById("searchNhanVien");
+    if (searchNhanVienInput) {
+        searchNhanVienInput.addEventListener("keyup", function () {
+
+            var value = this.value.toLowerCase();
+
+            document.querySelectorAll(".nhanvien-item").forEach(function (item) {
+
+                var text = item.innerText.toLowerCase();
+
+                item.style.display = text.includes(value) ? "" : "none";
+
+            });
+
+        });
+    }
+
+</script>

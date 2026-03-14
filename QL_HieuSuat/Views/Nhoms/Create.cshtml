@@ -1,0 +1,113 @@
+﻿@model QL_HieuSuat.Models.Nhom
+
+@{
+    ViewData["Title"] = "Tạo nhóm";
+}
+
+<div class="container mt-4">
+
+    <div class="card shadow">
+
+        <div class="card-header bg-primary text-white">
+            <h4 class="mb-0">➕ Tạo nhóm mới</h4>
+        </div>
+
+        <div class="card-body">
+
+            <form asp-action="Create">
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Tên nhóm</label>
+                    <input asp-for="Tennhom" class="form-control" />
+                </div>
+
+                <!-- TRƯỞNG NHÓM -->
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Trưởng nhóm</label>
+
+                    <select id="truongNhomSelect" name="TruongNhomId" class="form-select" required>
+
+                        <option value="">-- Chọn trưởng nhóm --</option>
+
+                        @foreach (var nv in ViewBag.Nhanviens)
+                        {
+                            <option value="@nv.Value">@nv.Text</option>
+                        }
+
+                    </select>
+                </div>
+
+                <!-- THÀNH VIÊN -->
+                <div class="mb-3">
+
+                    <label class="form-label fw-bold">
+                        Thành viên nhóm
+                    </label>
+
+                    <div class="border p-3 rounded" style="max-height:200px;overflow:auto">
+
+                        @foreach (var nv in ViewBag.Nhanviens)
+                        {
+                            <div class="form-check">
+
+                                <input class="form-check-input thanhvien-checkbox"
+                                       type="checkbox"
+                                       name="ThanhVienIds"
+                                       value="@nv.Value" />
+
+                                <label class="form-check-label">
+                                    @nv.Text
+                                </label>
+
+                            </div>
+                        }
+
+                    </div>
+
+                </div>
+
+                <!-- NGÀY TẠO -->
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Ngày tạo</label>
+                    <input class="form-control"
+                           value="@DateTime.Now.ToString("dd/MM/yyyy")"
+                           readonly />
+                </div>
+
+                <button class="btn btn-success">
+                    💾 Tạo nhóm
+                </button>
+
+                <a asp-action="Index" class="btn btn-secondary">
+                    Quay lại
+                </a>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+
+    document.getElementById("truongNhomSelect").addEventListener("change", function () {
+
+        var truongNhomId = this.value;
+
+        document.querySelectorAll(".thanhvien-checkbox").forEach(function (checkbox) {
+
+            if (checkbox.value === truongNhomId) {
+                checkbox.checked = false;
+                checkbox.closest(".form-check").style.display = "none";
+            }
+            else {
+                checkbox.closest(".form-check").style.display = "block";
+            }
+
+        });
+
+    });
+
+</script>

@@ -1,0 +1,870 @@
+﻿@model QL_HieuSuat.Models.Congviec
+
+@{
+    ViewData["Title"] = "Chi tiết công việc";
+    var isAdmin = User.IsInRole("Admin");
+    var isHrManager = User.IsInRole("QuanLyNhanSu");
+    var canAssign = isAdmin || User.IsInRole("TruongPhong") || User.IsInRole("TruongNhom");
+    var canApprove = User.IsInRole("TruongPhong") || User.IsInRole("TruongNhom");
+    var canUpdateProgress = User.IsInRole("NhanVien") || User.IsInRole("TruongPhong") || User.IsInRole("TruongNhom");
+    var currentNhanVienId = ViewBag.CurrentNhanVienId is int value ? value : (int?)null;
+    var isPersonalTask = Model.Phancongcongviecs != null
+        && Model.Phancongcongviecs.Any()
+        && Model.Phancongcongviecs.All(pc => pc.Loaidoituong == "NhanVien")
+        && Model.Phancongcongviecs.Select(pc => pc.Manhanvien).Distinct().Count() == 1;
+}
+
+<div class="container mt-4">
+
+    @if (TempData["UploadSuccess"] != null)
+    {
+        <div class="alert alert-success">
+            @TempData["UploadSuccess"]
+        </div>
+    }
+
+    @if (TempData["UploadError"] != null)
+    {
+        <div class="alert alert-danger">
+            @TempData["UploadError"]
+        </div>
+    }
+
+    <h2 class="fw-bold mb-3">📋 Chi tiết công việc</h2>
+
+    @if (!isPersonalTask)
+    {
+        <div class="alert alert-info d-flex justify-content-between align-items-center">
+            <span>Công việc này có khu vực trò chuyện nhóm/công việc.</span>
+            <a asp-action="TroChuyen" asp-route-id="@Model.Macongviec" class="btn btn-sm btn-outline-primary">Mở trò chuyện</a>
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-secondary">Công việc cá nhân: không hiển thị khu vực trò chuyện nhóm/công việc.</div>
+    }
+
+    <div class="card shadow mb-4">
+
+        <div class="card-header bg-primary text-white">
+            Thông tin công việc
+        </div>
+
+        <div class="card-body">
+
+            <div class="row">
+
+                <div class="col-md-6 mb-3">
+                    <b>Tên công việc</b>
+                    <p>@Model.Tencongviec</p>
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <b>Trạng thái</b>
+
+                    @if (Model.Matrangthai == 3)
+                    {
+                        <span class="badge bg-success">Hoàn thành</span>
+                    }
+                    else if (Model.Matrangthai == 4)
+                    {
+                        <span class="badge bg-info">Chờ duyệt</span>
+                    }
+                    else if (Model.Matrangthai == 2)
+                    {
+                        <span class="badge bg-warning">Đang thực hiện</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-secondary">Chưa bắt đầu</span>
+                    }
+
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <b>Hạn hoàn thành</b>
+                    <p>@Model.Hanhoanthanh?.ToString("dd/MM/yyyy")</p>
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <b>Độ ưu tiên</b>
+                    <p>@Model.Douutien</p>
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <b>Điểm công việc</b>
+                    <p>@Model.Diemcongviec</p>
+                </div>
+
+
+
+                <div class="col-md-12 mb-3">
+                    <b>Mô tả</b>
+                    <p>@Model.Mota</p>
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    @if (isAdmin)
+    {
+        <div class="mb-3">
+
+            <a asp-action="Create"
+               asp-route-macongvieccha="@Model.Macongviec"
+               class="btn btn-success">
+
+                ➕ Thêm công việc con
+
+            </a>
+
+        </div>
+    }
+
+
+    @{
+    var tasks = Model.InverseConMacongviecNavigation ?? new List<QL_HieuSuat.Models.Congviec>();
+
+    //double tongDiem = tasks.Sum(t => t.Diemcongviec ?? 0);
+    
+
+    // double tienDo = 0;
+
+    // if (tongDiem > 0)
+    // {
+    //     tienDo = tasks.Sum(t =>
+    //     ((t.Trangthai == 3 ? 100 : 0) * (t.Diemcongviec ?? 0))
+    //     ) / tongDiem;
+    // }
+        double tongDiem = tasks.Any()
+        ? tasks.Sum(t => t.Diemcongviec ?? 0)
+        : Model.Diemcongviec ?? 0;
+
+        double tienDo = 0;
+
+        if (tasks.Any())
+        {
+            if (tongDiem > 0)
+            {
+                tienDo = tasks.Sum(t =>
+                ((t.Matrangthai == 3 ? 100 : 0) * (t.Diemcongviec ?? 0))
+                ) / tongDiem;
+            }
+        }
+        else
+        {
+            tienDo = Model.Nhatkycongviecs
+            .OrderByDescending(n => n.Ngaycapnhat)
+            .FirstOrDefault()?.Phantramhoanthanh ?? 0;
+        }
+}
+    @if (isAdmin)
+    {
+    <div class="card shadow mb-4">
+
+        <div class="card-header bg-secondary text-white">
+            📎 Tài liệu công việc
+        </div>
+
+        <div class="card-body">
+
+            <!-- Upload -->
+            <form asp-action="UploadTaiLieu"
+                  asp-controller="Congviecs"
+                  method="post"
+                  enctype="multipart/form-data"
+                  class="mb-3">
+
+                <input type="hidden" name="macongviec" value="@Model.Macongviec" />
+
+                <div class="input-group">
+
+                    <input type="file"
+                           name="file"
+                           class="form-control"
+                           required />
+
+                    <button class="btn btn-primary">
+                        Upload
+                    </button>
+
+                </div>
+
+            </form>
+
+            <!-- List tài liệu -->
+            @if (Model.Matailieus?.Any() == true)
+            {
+                <ul class="list-group">
+
+                    @foreach (var tl in Model.Matailieus)
+                    {
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+
+                            <a href="/uploads/@tl.Huongdan"
+                               target="_blank"
+                               class="text-decoration-none">
+
+                                📄 @tl.Tentailieu
+
+                            </a>
+
+                            <form asp-action="DeleteFile"
+                                  asp-controller="Congviecs"
+                                  method="post">
+
+                                <input type="hidden"
+                                       name="id"
+                                       value="@tl.Matailieu" />
+
+                                <button class="btn btn-sm btn-danger">
+                                    🗑
+                                </button>
+
+                            </form>
+
+                        </li>
+                    }
+
+                </ul>
+            }
+            else
+            {
+                <p class="text-muted">Chưa có tài liệu</p>
+            }
+
+        </div>
+
+    </div>
+    }
+
+    @if (isAdmin)
+    {
+    <div class="card shadow mb-4">
+
+        <div class="card-header bg-secondary text-white">
+            💬 Bình luận công việc
+        </div>
+
+        <div class="card-body">
+
+            <!-- FORM COMMENT -->
+
+            <form asp-action="AddComment"
+                  asp-controller="Congviecs"
+                  method="post"
+                  class="mb-4">
+
+                <input type="hidden"
+                       name="macongviec"
+                       value="@Model.Macongviec" />
+
+                <div class="input-group">
+
+                    <textarea name="noidung"
+                              class="form-control"
+                              placeholder="Nhập bình luận..."
+                              rows="2"
+                              required></textarea>
+
+                    <button class="btn btn-primary">
+                        Gửi
+                    </button>
+
+                </div>
+
+            </form>
+
+            <!-- LIST COMMENT -->
+            @{
+                var comments = ViewBag.Comments as List<QL_HieuSuat.Models.Binhluan>;
+            }
+
+            @if (comments != null && comments.Any())
+            {
+                foreach (var c in comments)
+                {
+                    <div class="d-flex mb-3">
+
+                        <div class="me-3">
+
+                            <div class="rounded-circle bg-primary text-white text-center"
+                                 style="width:40px;height:40px;line-height:40px;font-weight:bold">
+
+                                @c.ManhanvienNavigation?.Hoten.Substring(0, 1)
+
+                            </div>
+
+                        </div>
+
+                        <div class="flex-grow-1">
+
+                            <div class="border rounded p-3 bg-light">
+
+                                <div class="d-flex justify-content-between">
+
+                                    <b>@c.ManhanvienNavigation?.Hoten</b>
+
+                                    <small class="text-muted">
+                                        @c.Ngaytao.ToString("dd/MM/yyyy HH:mm")
+                                    </small>
+
+                                </div>
+
+                                <div class="mt-2">
+                                    @c.Noidung
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+                }
+            }
+            else
+            {
+                <p class="text-muted">Chưa có bình luận</p>
+            }
+
+        </div>
+
+    </div>
+    }
+
+
+    <div class="card shadow mb-4">
+
+        <div class="card-header bg-dark text-white">
+            📊 Tiến độ công việc
+        </div>
+
+        <div class="card-body">
+
+            <div class="progress" style="height:25px">
+
+                <div class="progress-bar progress-bar-striped progress-bar-animated bg-success"
+                     role="progressbar"
+                     style="width:@tienDo%">
+
+                    @Math.Round(tienDo)%
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+<div class="card shadow mb-4">
+
+    <div class="card-header bg-info text-white">
+        📑 Công việc con
+    </div>
+
+    <div class="card-body">
+
+        @if (tasks.Any())
+        {
+
+            
+                var tongNhanVien = tasks
+                    .SelectMany(cv => cv.Phancongcongviecs)
+                    .Where(p => p.ManhanvienNavigation != null)
+                    //.Select(p => p.Manhanvien)
+                    .Select(p => p.ManhanvienNavigation.Manhanvien)
+                    .Distinct()
+                    .Count();
+            
+
+            <div class="mb-3">
+                <span class="badge bg-success">
+                    Tổng nhân viên tham gia: @tongNhanVien
+                </span>
+            </div>
+
+            <table class="table table-hover table-bordered">
+
+                <thead class="table-dark">
+                    <tr>
+                        <th>Tên công việc</th>
+                        <th>Thành viên</th>
+                        <th>Tiến độ</th>
+                        <th>Hoàn thành</th>
+                        @if (canApprove)
+                        {
+                            <th>Duyệt</th>
+                        }
+                        <th>Giao việc</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                @foreach (var cv in tasks)
+                {
+
+                    var tiendo = cv.Nhatkycongviecs
+                        .OrderByDescending(n => n.Ngaycapnhat)
+                        .FirstOrDefault()?.Phantramhoanthanh ?? 0;
+
+                    <tr>
+
+                        <td>
+                            <a asp-controller="Congviecs"
+                               asp-action="Details"
+                               asp-route-id="@cv.Macongviec"
+                               class="fw-bold text-decoration-none">
+
+                                📄 @cv.Tencongviec
+
+                            </a>
+                        </td>
+
+                        <td>
+
+                            @{
+                                // var nhanViens = cv.Phancongcongviecs
+                                //     .Where(p => p.ManhanvienNavigation != null)
+                                //     .Select(p => p.ManhanvienNavigation.Hoten)
+                                //     .ToList();
+                                        var phanCongs = cv.Phancongcongviecs
+                                        .Where(p => p.ManhanvienNavigation != null)
+                                        .ToList();
+                            }
+
+                            @if (phanCongs.Any())
+                            {
+                                var nhomDuocGiao = phanCongs
+                                    .Where(p => p.ManhomNavigation != null)
+                                    .Select(p => p.ManhomNavigation.Tennhom)
+                                    .Where(x => !string.IsNullOrWhiteSpace(x))
+                                    .Distinct()
+                                    .ToList();
+
+                                var phongBanDuocGiao = phanCongs
+                                    .Where(p => p.MaphongbanNavigation != null)
+                                    .Select(p => p.MaphongbanNavigation.Tenphongban)
+                                    .Where(x => !string.IsNullOrWhiteSpace(x))
+                                    .Distinct()
+                                    .ToList();
+
+                                if (nhomDuocGiao.Any() || phongBanDuocGiao.Any())
+                                {
+                                    foreach (var tenNhom in nhomDuocGiao)
+                                    {
+                                        <span class="badge bg-info me-1">Nhóm: @tenNhom</span>
+                                    }
+
+                                    foreach (var tenPhong in phongBanDuocGiao)
+                                    {
+                                        <span class="badge bg-warning text-dark me-1">Phòng: @tenPhong</span>
+                                    }
+                                }
+                                else
+                                {
+                                    foreach (var pc in phanCongs)
+                                    {
+                                        <span class="badge bg-primary me-1">
+                                            @pc.ManhanvienNavigation.Hoten
+                                        </span>
+
+                                        @if (isAdmin)
+                                        {
+                                            <form asp-controller="Phancongcongviecs"
+                                                  asp-action="RemoveNhanVien"
+                                                  method="post"
+                                                  style="display:inline">
+
+                                                <input type="hidden" name="id" value="@pc.Maphancong" />
+
+                                                <button type="submit"
+                                                        class="btn btn-sm btn-outline-danger"
+                                                        onclick="return confirm('Xóa nhân viên khỏi công việc?')">
+
+                                                    🗑
+                                                </button>
+
+                                            </form>
+                                        }
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                <span class="text-muted">Chưa giao</span>
+                            }
+
+                        </td>
+
+                        <td>
+
+                            <div class="progress">
+
+                                <div class="progress-bar bg-success"
+                                     style="width:@tiendo%">
+
+                                    @tiendo %
+
+                                </div>
+
+                            </div>
+
+                        </td>
+
+                        <td class="text-center">
+                            @if (canUpdateProgress)
+                            {
+                                <input type="checkbox"
+                                       class="form-check-input updateStatus"
+                                       data-id="@cv.Macongviec"
+                                       @(cv.Matrangthai == 3 ? "checked" : "") />
+                            }
+                            else
+                            {
+                                <span class="text-muted">Chỉ xem</span>
+                            }
+
+                        </td>
+
+                        @if (canApprove)
+                        {
+                            <td>
+
+                                @if (cv.Matrangthai == 4)
+                                {
+                                    var truongNhom = cv.Phancongcongviecs
+                                    .Where(p => p.Manhom != null)
+                                    .SelectMany(p => p.ManhomNavigation.Thanhviennhoms)
+                                    .FirstOrDefault(tv => tv.Vaitrotrongnhom == "TruongNhom");
+
+                                    if (truongNhom != null)
+                                    {
+                                        <a asp-action="Approve"
+                                           asp-controller="Congviecs"
+                                           asp-route-id="@cv.Macongviec"
+                                           class="btn btn-success btn-sm">
+                                            ✔ Duyệt
+                                        </a>
+                                    }
+                                }
+
+                            </td>
+                        }
+
+                        <td>
+
+                            @if (canAssign)
+                            {
+                                <a asp-controller="Phancongcongviecs"
+                                   asp-action="Create"
+                                   asp-route-macongviec="@cv.Macongviec"
+                                   class="btn btn-primary btn-sm">
+
+                                    👤 Giao việc
+
+                                </a>
+                            }
+
+                        </td>
+
+                    </tr>
+
+                }
+
+                </tbody>
+
+            </table>
+
+        }
+            else
+            {
+                <table class="table table-hover table-bordered">
+
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Tên công việc</th>
+                            <th>Thành viên</th>
+                            <th>Tiến độ</th>
+                            <th>Hoàn thành</th>
+                            <th>Giao việc</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+
+                        @{
+                            // var nhanViens = Model.Phancongcongviecs
+                            // .Where(p => p.ManhanvienNavigation != null)
+                            // .Select(p => p.ManhanvienNavigation.Hoten)
+                            // .ToList();
+                            var phanCongs = Model.Phancongcongviecs
+                            .Where(p => p.ManhanvienNavigation != null)
+                            .ToList();
+
+                            var tiendo = Model.Nhatkycongviecs
+                            .OrderByDescending(n => n.Ngaycapnhat)
+                            .FirstOrDefault()?.Phantramhoanthanh ?? 0;
+                        }
+
+                        @if (phanCongs.Any())
+                        {
+                            foreach (var pc in phanCongs)
+                            {
+                                var loaiGiao = pc.Loaidoituong ?? "NhanVien";
+                                var tenDoiTuong = loaiGiao == "Nhom"
+                                    ? $"Nhóm: {pc.ManhomNavigation?.Tennhom}"
+                                    : loaiGiao == "PhongBan"
+                                        ? $"Phòng: {pc.MaphongbanNavigation?.Tenphongban}"
+                                        : "Cá nhân";
+                                var isCurrentAssignee = currentNhanVienId.HasValue && pc.Manhanvien == currentNhanVienId.Value;
+
+                                <tr>
+
+                                    <td class="fw-bold">
+                                        📄 @Model.Tencongviec
+                                    </td>
+
+                                    <td>
+                                        <div class="d-flex flex-column gap-1">
+                                            <span class="badge bg-primary">@pc.ManhanvienNavigation.Hoten</span>
+                                            <small class="text-muted">@tenDoiTuong</small>
+                                        </div>
+                                    </td>
+
+                                    <td>
+                                        <div class="progress">
+                                            <div class="progress-bar bg-success"
+                                                 style="width:@tiendo%">
+                                                @tiendo %
+                                            </div>
+                                        </div>
+                                    </td>
+
+                                    <td class="text-center">
+                                        @if (canUpdateProgress && isCurrentAssignee)
+                                        {
+                                            <input type="checkbox"
+                                                   class="form-check-input updateStatus"
+                                                   data-id="@Model.Macongviec"
+                                                   @(Model.Matrangthai == 3 ? "checked" : "") />
+                                        }
+                                        else if (canUpdateProgress)
+                                        {
+                                            <span class="text-muted small">@((loaiGiao == "NhanVien") ? "Người nhận khác" : "Chỉ người trong nhóm/phòng")</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">Chỉ xem</span>
+                                        }
+
+                                    </td>
+
+                                    <td>
+
+                                        @if (isAdmin)
+                                        {
+                                            <form asp-controller="Phancongcongviecs"
+                                                  asp-action="RemoveNhanVien"
+                                                  method="post"
+                                                  style="display:inline">
+
+                                                <input type="hidden" name="id" value="@pc.Maphancong" />
+
+                                                <button type="submit"
+                                                        class="btn btn-sm btn-outline-danger"
+                                                        onclick="return confirm('Xóa nhân viên khỏi công việc?')">
+
+                                                    🗑
+                                                </button>
+
+                                            </form>
+                                        }
+
+                                        @if (canAssign)
+                                        {
+                                            <a asp-controller="Phancongcongviecs"
+                                               asp-action="Create"
+                                               asp-route-macongviec="@Model.Macongviec"
+                                               class="btn btn-primary btn-sm ms-1">
+
+                                                👤 Giao việc
+
+                                            </a>
+                                        }
+
+                                    </td>
+
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td class="fw-bold">📄 @Model.Tencongviec</td>
+                                <td><span class="text-muted">Chưa giao</span></td>
+                                <td>
+                                    <div class="progress">
+                                        <div class="progress-bar bg-success" style="width:@tiendo%">@tiendo %</div>
+                                    </div>
+                                </td>
+                                <td class="text-center"><span class="text-muted">-</span></td>
+                                <td>
+                                    @if (canAssign)
+                                    {
+                                        <a asp-controller="Phancongcongviecs"
+                                           asp-action="Create"
+                                           asp-route-macongviec="@Model.Macongviec"
+                                           class="btn btn-primary btn-sm">
+                                            👤 Giao việc
+                                        </a>
+                                    }
+                                </td>
+                            </tr>
+                        }
+
+                    </tbody>
+
+                </table>
+            }
+
+    </div>
+
+</div>
+
+
+    <div class="d-flex gap-2 mt-3">
+
+        @if (isAdmin)
+        {
+            <a asp-action="Edit"
+               asp-route-id="@Model.Macongviec"
+               class="btn btn-warning">
+
+                ✏ Chỉnh sửa
+
+            </a>
+        }
+
+        @if (isAdmin)
+        {
+            <a asp-controller="Duans"
+               asp-action="Details"
+               asp-route-id="@Model.Maduan"
+               class="btn btn-outline-secondary">
+
+                ← Quay lại dự án
+
+            </a>
+        }
+        else if (isHrManager)
+        {
+            <a asp-controller="QuanLyNhanSu"
+               asp-action="Index"
+               class="btn btn-outline-secondary">
+
+                ← Quay lại QL nhân sự
+
+            </a>
+        }
+        else
+        {
+            <a asp-controller="NhanVien"
+               asp-action="Index"
+               class="btn btn-outline-secondary">
+
+                ← Quay lại trang nhân viên
+
+            </a>
+        }
+
+    </div>
+
+</div>
+
+@section Scripts {
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.7/signalr.min.js"></script>
+
+    <script>
+
+        $(document).ready(function () {
+
+            var currentTaskId = @Model.Macongviec;
+            var currentProjectId = @Model.Maduan;
+
+            if (window.signalR) {
+                var connection = new signalR.HubConnectionBuilder()
+                    .withUrl("/hubs/task-progress")
+                    .withAutomaticReconnect()
+                    .build();
+
+                connection.on("ProgressChanged", function (payload) {
+                    if (!payload) return;
+
+                    var sameTask = payload.taskId === currentTaskId;
+                    var childChanged = payload.parentTaskId === currentTaskId;
+                    var sameProject = payload.projectId === currentProjectId;
+
+                    if (sameTask || childChanged || sameProject) {
+                        location.reload();
+                    }
+                });
+
+                connection.start().catch(function (err) {
+                    console.error("SignalR connection error:", err);
+                });
+            }
+
+            $(".updateStatus").change(function () {
+
+                var checkbox = $(this);
+                var id = checkbox.data("id");
+                var status = checkbox.is(":checked");
+
+                if (!confirm("Bạn có chắc muốn cập nhật trạng thái công việc?")) {
+                    checkbox.prop("checked", !status);
+                    return;
+                }
+
+                $.ajax({
+
+                    url: "/Congviecs/RequestComplete",
+                    type: "POST",
+
+                    data: {
+                        id: id,
+                        status: status
+                    },
+
+                    success: function (res) {
+
+                        if (res.success) {
+                            alert("Cập nhật trạng thái thành công");
+                            location.reload();
+                        }
+                        else {
+                            alert("Không thể cập nhật");
+                        }
+
+                    },
+
+                    error: function () {
+                        alert("Có lỗi xảy ra khi gọi API");
+                    }
+
+                });
+
+            });
+
+        });
+
+    </script>
+
+}

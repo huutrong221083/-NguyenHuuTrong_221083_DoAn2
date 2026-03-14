@@ -1,0 +1,230 @@
+@model IEnumerable<QL_HieuSuat.Models.Dudoanai>
+
+@{
+    ViewData["Title"] = "Trung tâm Dự báo AI";
+
+    var projectNames = ViewBag.ProjectNames as Dictionary<int, string> ?? new Dictionary<int, string>();
+    var projectEstimatedDates = ViewBag.ProjectEstimatedDates as Dictionary<int, DateTime?> ?? new Dictionary<int, DateTime?>();
+    var projectDeadlines = ViewBag.ProjectDeadlines as Dictionary<int, DateTime?> ?? new Dictionary<int, DateTime?>();
+    var projectSkillSuggestions = ViewBag.ProjectSkillSuggestions as Dictionary<int, string> ?? new Dictionary<int, string>();
+
+    var projectLatest = Model
+        .Where(x => x.Madoituong.HasValue)
+        .GroupBy(x => x.Madoituong!.Value)
+        .Select(g => g
+            .OrderByDescending(x => x.Nam ?? 0)
+            .ThenByDescending(x => x.Thang ?? 0)
+            .ThenByDescending(x => x.Thoigiandudoan ?? DateTime.MinValue)
+            .First())
+        .OrderByDescending(x => x.Xacsuattrehan ?? 0)
+        .ToList();
+
+    var employeeLatest = Model
+        .Where(x => x.Manhanvien.HasValue)
+        .GroupBy(x => x.Manhanvien!.Value)
+        .Select(g => g
+            .OrderByDescending(x => x.Nam ?? 0)
+            .ThenByDescending(x => x.Thang ?? 0)
+            .ThenByDescending(x => x.Thoigiandudoan ?? DateTime.MinValue)
+            .First())
+        .OrderByDescending(x => x.Diemdudoan ?? 0)
+        .ToList();
+
+    int totalProjects = projectLatest.Count;
+    int highRisk = projectLatest.Count(x => (x.Xacsuattrehan ?? 0) > 0.6);
+    int mediumRisk = projectLatest.Count(x => (x.Xacsuattrehan ?? 0) > 0.3 && (x.Xacsuattrehan ?? 0) <= 0.6);
+    int stable = totalProjects - highRisk - mediumRisk;
+    var avgRisk = totalProjects == 0 ? 0 : projectLatest.Average(x => (x.Xacsuattrehan ?? 0) * 100);
+}
+
+<div class="ai-page">
+    <div class="d-flex justify-content-between align-items-start flex-wrap gap-3 mb-3">
+        <div>
+            <h2 class="mb-1">Dự báo AI</h2>
+            <p class="text-muted mb-0">Giao diện tối giản để chạy dự báo và xem kết quả mới nhất.</p>
+        </div>
+        <div class="d-flex gap-2 flex-wrap">
+            <a asp-action="ChayTatCaDuBaoAI" class="btn btn-primary">Chạy toàn bộ AI</a>
+        </div>
+    </div>
+
+    @if (TempData["AI_SUCCESS"] != null)
+    {
+        <div class="alert alert-success">@TempData["AI_SUCCESS"]</div>
+    }
+
+    @if (TempData["AI_ERROR"] != null)
+    {
+        <div class="alert alert-danger">@TempData["AI_ERROR"]</div>
+    }
+
+    <div class="summary-strip mb-4">
+        <span><strong>@totalProjects</strong> dự án</span>
+        <span><strong class="text-danger">@highRisk</strong> nguy cơ cao</span>
+        <span><strong class="text-warning">@mediumRisk</strong> trung bình</span>
+        <span><strong class="text-success">@stable</strong> ổn định</span>
+        <span><strong>@Math.Round(avgRisk, 1)%</strong> rủi ro TB</span>
+    </div>
+
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-white d-flex justify-content-between align-items-center gap-2 flex-wrap">
+            <h5 class="mb-0">Dự báo dự án (bản ghi mới nhất)</h5>
+            <input id="projectSearch" class="form-control form-control-sm table-search" placeholder="Tìm nhanh..." />
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover mb-0" id="projectTable">
+                <thead class="table-light">
+                    <tr>
+                        <th>Dự án</th>
+                        <th>Kỳ</th>
+                        <th>Hạn hoàn thành</th>
+                        <th>Dự kiến hoàn thành</th>
+                        <th>Xác suất trễ hạn</th>
+                        <th>Khuyến nghị</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (!projectLatest.Any())
+                    {
+                        <tr>
+                            <td colspan="6" class="text-center text-muted py-4">Chưa có dữ liệu dự báo dự án.</td>
+                        </tr>
+                    }
+                    else
+                    {
+                        foreach (var item in projectLatest)
+                        {
+                            var projectId = item.Madoituong ?? 0;
+                            var projectLabel = projectNames.TryGetValue(projectId, out var tenDuAn)
+                                ? tenDuAn
+                                : $"Dự án #{projectId}";
+
+                            var estimatedDate = projectEstimatedDates.TryGetValue(projectId, out var ngayDuKien)
+                                ? ngayDuKien
+                                : null;
+
+                            var deadlineDate = projectDeadlines.TryGetValue(projectId, out var ngayHan)
+                                ? ngayHan
+                                : null;
+
+                            var skillSuggestion = projectSkillSuggestions.TryGetValue(projectId, out var goiYNhanSu)
+                                ? goiYNhanSu
+                                : "Chưa có gợi ý nhân sự theo kỹ năng.";
+
+                            var riskPct = Math.Round((item.Xacsuattrehan ?? 0) * 100, 1);
+                            var barClass = riskPct > 60 ? "bg-danger" : riskPct > 30 ? "bg-warning" : "bg-success";
+
+                            <tr>
+                                <td>
+                                    <div class="fw-semibold">@projectLabel</div>
+                                    <div class="small text-muted">Mã: @item.Madoituong</div>
+                                </td>
+                                <td>@item.Thang/@item.Nam</td>
+                                <td>
+                                    @if (deadlineDate.HasValue)
+                                    {
+                                        @deadlineDate.Value.ToString("dd/MM/yyyy")
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">Chưa thiết lập</span>
+                                    }
+                                </td>
+                                <td>
+                                    @if (estimatedDate.HasValue)
+                                    {
+                                        @estimatedDate.Value.ToString("dd/MM/yyyy")
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">Chưa đủ dữ liệu</span>
+                                    }
+                                </td>
+                                <td style="min-width: 200px;">
+                                    <div class="progress ai-progress">
+                                        <div class="progress-bar @barClass" style="width: @riskPct%;">@riskPct%</div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div>@(string.IsNullOrWhiteSpace(item.Dexuatcaithien) ? "Không có" : item.Dexuatcaithien)</div>
+                                    <div class="small text-muted mt-1">
+                                        Gợi ý nhân sự: @skillSuggestion
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-header bg-white d-flex justify-content-between align-items-center gap-2 flex-wrap">
+            <h5 class="mb-0">Dự báo KPI nhân viên (bản ghi mới nhất)</h5>
+            <input id="employeeSearch" class="form-control form-control-sm table-search" placeholder="Tìm nhanh..." />
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover mb-0" id="employeeTable">
+                <thead class="table-light">
+                    <tr>
+                        <th>Nhân viên</th>
+                        <th>Điểm KPI</th>
+                        <th>Gợi ý</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (!employeeLatest.Any())
+                    {
+                        <tr>
+                            <td colspan="3" class="text-center text-muted py-4">Chưa có dữ liệu dự báo nhân viên.</td>
+                        </tr>
+                    }
+                    else
+                    {
+                        foreach (var item in employeeLatest)
+                        {
+                            var score = Math.Round(item.Diemdudoan ?? 0, 1);
+                            var barClass = score < 60 ? "bg-danger" : score < 75 ? "bg-warning" : "bg-success";
+                            var displayName = item.ManhanvienNavigation?.Hoten ?? $"Nhân viên #{item.Manhanvien}";
+
+                            <tr>
+                                <td>
+                                    <div class="fw-semibold">@displayName</div>
+                                    <div class="small text-muted">Mã: @item.Manhanvien</div>
+                                </td>
+                                <td style="min-width: 180px;">
+                                    <div class="progress ai-progress">
+                                        <div class="progress-bar @barClass" style="width: @score%;">@score</div>
+                                    </div>
+                                </td>
+                                <td>@(string.IsNullOrWhiteSpace(item.Gioiynguonluc) ? "Khong co" : item.Gioiynguonluc)</td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    function wireTableSearch(inputId, tableId) {
+        const input = document.getElementById(inputId);
+        const table = document.getElementById(tableId);
+        if (!input || !table) return;
+
+        input.addEventListener("input", function () {
+            const q = this.value.toLowerCase().trim();
+            const rows = table.querySelectorAll("tbody tr");
+
+            rows.forEach(row => {
+                const text = row.innerText.toLowerCase();
+                row.style.display = text.includes(q) ? "" : "none";
+            });
+        });
+    }
+
+    wireTableSearch("projectSearch", "projectTable");
+    wireTableSearch("employeeSearch", "employeeTable");
+</script>

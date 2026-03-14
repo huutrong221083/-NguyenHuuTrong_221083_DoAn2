@@ -1,0 +1,111 @@
+﻿@model IEnumerable<QL_HieuSuat.Models.Nhom>
+
+@{
+    ViewData["Title"] = "Quản lý nhóm";
+}
+
+<div class="container mt-4">
+
+    <div class="card shadow">
+
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+
+            <h4 class="mb-0">👥 Quản lý nhóm</h4>
+
+            <a asp-action="Create" class="btn btn-light btn-sm">
+                ➕ Tạo nhóm mới
+            </a>
+
+        </div>
+
+        <div class="card-body">
+
+            <div class="table-responsive border rounded" style="max-height:400px; overflow-y:auto;">
+
+                <table class="table table-bordered table-hover mb-0">
+
+                    <thead class="table-light" style="position:sticky; top:0; z-index:1;">
+                        <tr>
+                            <th>Tên nhóm</th>
+                            <th>Trưởng nhóm</th>
+                            <th width="120">Thành viên</th>
+                            <th width="120">Ngày tạo</th>
+                            <th width="260">Hành động</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+
+                        @foreach (var item in Model)
+                        {
+                            var truongNhom = item.Thanhviennhoms
+                            .FirstOrDefault(x => x.Vaitrotrongnhom == "Trưởng nhóm");
+
+                            <tr>
+
+                                <td>
+                                    <strong>@item.Tennhom</strong>
+                                </td>
+
+                                <td>
+                                    @(truongNhom != null
+                                        ? truongNhom.ManhanvienNavigation.Hoten
+                                        : "Chưa có")
+                                </td>
+
+                                <td class="text-center">
+                                    <span class="badge bg-secondary">
+                                        @item.Thanhviennhoms.Count
+                                    </span>
+                                </td>
+
+                                <td>
+                                    @(item.Ngaytao?.ToString("dd/MM/yyyy"))
+                                </td>
+
+                                <td>
+
+                                    <div class="d-flex gap-1 flex-wrap">
+
+                                        <a asp-action="Edit"
+                                           asp-route-id="@item.Manhom"
+                                           class="btn btn-sm btn-warning">
+                                            Sửa
+                                        </a>
+
+                                        <a asp-action="Details"
+                                           asp-route-id="@item.Manhom"
+                                           class="btn btn-sm btn-info">
+                                            Chi tiết
+                                        </a>
+
+                                        <a asp-action="ThanhVien"
+                                           asp-route-id="@item.Manhom"
+                                           class="btn btn-sm btn-secondary">
+                                            Thành viên
+                                        </a>
+
+                                        <a asp-action="Delete"
+                                           asp-route-id="@item.Manhom"
+                                           class="btn btn-sm btn-danger">
+                                            Xóa
+                                        </a>
+
+                                    </div>
+
+                                </td>
+
+                            </tr>
+                        }
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>

@@ -1,0 +1,93 @@
+﻿@model QL_HieuSuat.Models.Dudoanai
+
+@{
+    ViewData["Title"] = "Chi tiết dự báo AI";
+
+    var riskPct = Math.Round((Model.Xacsuattrehan ?? 0) * 100, 1);
+    var kpiScore = Math.Round(Model.Diemdudoan ?? 0, 1);
+    var isProjectPrediction = Model.Madoituong.HasValue;
+
+    var level = "Thấp";
+    var levelClass = "bg-success";
+
+    if (riskPct > 60)
+    {
+        level = "Cao";
+        levelClass = "bg-danger";
+    }
+    else if (riskPct > 30)
+    {
+        level = "Trung bình";
+        levelClass = "bg-warning";
+    }
+}
+
+<div class="card shadow-sm">
+    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">Chi tiết dự báo AI #@Model.Madudoan</h5>
+        <span class="badge @levelClass">@level</span>
+    </div>
+
+    <div class="card-body">
+        <div class="row g-3 mb-4">
+            <div class="col-md-3 col-6">
+                <div class="text-muted small">Kỳ dự báo</div>
+                <div class="fw-semibold">@Model.Thang/@Model.Nam</div>
+            </div>
+            <div class="col-md-3 col-6">
+                <div class="text-muted small">Điểm dự báo</div>
+                <div class="fw-semibold">@kpiScore</div>
+            </div>
+            <div class="col-md-3 col-6">
+                <div class="text-muted small">Xác suất trễ hạn</div>
+                <div class="fw-semibold">@riskPct%</div>
+            </div>
+            <div class="col-md-3 col-6">
+                <div class="text-muted small">Loại đối tượng</div>
+                <div class="fw-semibold">@(isProjectPrediction ? "Dự án" : "Nhân viên")</div>
+            </div>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label fw-semibold mb-1">Mức rủi ro</label>
+            <div class="progress" style="height: 1.1rem;">
+                <div class="progress-bar @levelClass" style="width: @riskPct%;">@riskPct%</div>
+            </div>
+        </div>
+
+        <div class="row g-3">
+            <div class="col-md-6">
+                <div class="p-3 border rounded-3 h-100">
+                    <div class="fw-semibold mb-2">Đề xuất cải thiện</div>
+                    <div>@(string.IsNullOrWhiteSpace(Model.Dexuatcaithien) ? "Không có" : Model.Dexuatcaithien)</div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="p-3 border rounded-3 h-100">
+                    <div class="fw-semibold mb-2">Gợi ý nguồn lực</div>
+                    <div>@(string.IsNullOrWhiteSpace(Model.Gioiynguonluc) ? "Không có" : Model.Gioiynguonluc)</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-3 mt-1">
+            <div class="col-md-6">
+                <div class="text-muted small">Mã dự án</div>
+                <div>@(Model.Madoituong?.ToString() ?? "-")</div>
+            </div>
+            <div class="col-md-6">
+                <div class="text-muted small">Nhân viên</div>
+                <div>@(Model.ManhanvienNavigation?.Hoten ?? Model.Manhanvien?.ToString() ?? "-")</div>
+            </div>
+            <div class="col-md-6">
+                <div class="text-muted small">Thời gian dự báo</div>
+                <div>@(Model.Thoigiandudoan?.ToString("dd/MM/yyyy HH:mm") ?? "-")</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card-footer bg-white d-flex justify-content-between">
+        <a asp-action="Index" class="btn btn-outline-secondary">Quay lại</a>
+        <a asp-action="Edit" asp-route-id="@Model.Madudoan" class="btn btn-primary">Chỉnh sửa</a>
+    </div>
+</div>

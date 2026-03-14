@@ -1,0 +1,145 @@
+﻿@model QL_HieuSuat.Models.Nhom
+
+<div class="container-fluid">
+
+    <div class="card shadow border-0 rounded-4">
+
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+
+            <h5 class="mb-0">
+                👥 Thành viên nhóm: <strong>@Model.Tennhom</strong>
+            </h5>
+
+            <div>
+                <a asp-action="Index" class="btn btn-light btn-sm me-2">
+                    ⬅ Quay lại
+                </a>
+
+                <a asp-action="ThemThanhVien"
+                   asp-route-id="@Model.Manhom"
+                   class="btn btn-warning btn-sm">
+                    ➕ Thêm thành viên
+                </a>
+            </div>
+
+        </div>
+
+        <div class="card-body">
+
+            <table class="table table-striped table-hover align-middle">
+
+                <thead class="table-dark">
+
+                    <tr>
+                        <th width="20%">Nhân viên</th>
+                        <th width="12%">Vai trò</th>
+                        <th width="28%">Kỹ năng</th>
+                        <th width="12%">Kinh nghiệm</th>
+                        <th width="15%">Ngày gia nhập</th>
+                        <th width="13%" class="text-center">Hành động</th>
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                    @if (Model.Thanhviennhoms != null && Model.Thanhviennhoms.Any())
+                    {
+                        foreach (var item in Model.Thanhviennhoms)
+                        {
+                            <tr>
+
+                                <td>
+                                    <i class="bi bi-person-circle"></i>
+                                    @item.ManhanvienNavigation.Hoten
+                                </td>
+
+                                <td>
+
+                                    @if (item.Vaitrotrongnhom == "Trưởng nhóm")
+                                    {
+                                        <span class="badge bg-danger">
+                                            👑 Trưởng nhóm
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary">
+                                            Thành viên
+                                        </span>
+                                    }
+
+                                </td>
+
+                                <td>
+
+                                    @if (item.ManhanvienNavigation.Kynangnhanviens.Any())
+                                    {
+                                        foreach (var kn in item.ManhanvienNavigation.Kynangnhanviens)
+                                        {
+                                            <span class="badge bg-info text-dark me-1">
+                                                @kn.MakynangNavigation.Tenkynang
+                                            </span>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">Chưa có</span>
+                                    }
+
+                                </td>
+
+                                <td>
+
+                                    @if (item.ManhanvienNavigation.Sonamkinhnghiem != null)
+                                    {
+                                        <span class="badge bg-success">
+                                            @item.ManhanvienNavigation.Sonamkinhnghiem năm
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">Chưa cập nhật</span>
+                                    }
+
+                                </td>
+
+                                <td>
+                                    @item.Ngaygianhap?.ToString("dd/MM/yyyy")
+                                </td>
+
+                                <td class="text-center">
+
+                                    <a asp-action="XoaThanhVien"
+                                       asp-route-manhom="@item.Manhom"
+                                       asp-route-manhanvien="@item.Manhanvien"
+                                       class="btn btn-sm btn-danger"
+                                       onclick="return confirm('Bạn có chắc muốn xóa thành viên này khỏi nhóm?');">
+
+                                        🗑 Xóa
+
+                                    </a>
+
+                                </td>
+
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="4" class="text-center text-muted">
+                                Chưa có thành viên trong nhóm
+                            </td>
+                        </tr>
+                    }
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+</div>

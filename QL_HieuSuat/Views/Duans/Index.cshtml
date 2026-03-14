@@ -1,0 +1,114 @@
+﻿@model IEnumerable<QL_HieuSuat.Models.Duan>
+
+@{
+    ViewData["Title"] = "Danh sách dự án";
+}
+
+<div class="container mt-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2 class="fw-bold">📊 Danh sách dự án</h2>
+
+        <a asp-action="Create" class="btn btn-success">
+            + Tạo dự án mới
+        </a>
+    </div>
+
+    <div class="card shadow">
+
+        <div class="card-header bg-primary text-white fw-bold">
+            Quản lý dự án
+        </div>
+
+        <div class="card-body">
+
+            <table class="table table-hover table-bordered align-middle">
+
+                <thead class="table-dark text-center">
+                    <tr>
+                        <th>Tên dự án</th>
+                        <th>Mô tả</th>
+                        <th>Ngày bắt đầu</th>
+                        <th>Ngày kết thúc</th>
+                        <th>Trạng thái</th>
+                        <th width="200">Hành động</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+
+                            <td class="fw-semibold">
+                                @item.Tenduan
+                            </td>
+
+                            <td>
+                                @item.Mota
+                            </td>
+
+                            <td class="text-center">
+                                @item.Ngaybatdau?.ToString("dd/MM/yyyy")
+                            </td>
+
+                            <td class="text-center">
+                                @item.Ngayketthuc?.ToString("dd/MM/yyyy")
+                            </td>
+
+                            <td class="text-center">
+
+                                @if (item.Trangthai == 1)
+                                {
+                                    <span class="badge bg-secondary">Chưa bắt đầu</span>
+                                }
+                                else if (item.Trangthai == 2)
+                                {
+                                    <span class="badge bg-warning text-dark">Đang thực hiện</span>
+                                }
+                                else if (item.Trangthai == 3)
+                                {
+                                    <span class="badge bg-success">Hoàn thành</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-dark">Không xác định</span>
+                                }
+
+                            </td>
+
+                            <td class="text-center">
+
+                                <a asp-action="Details"
+                                   asp-route-id="@item.Maduan"
+                                   class="btn btn-info btn-sm">
+                                    🔍 Xem
+                                </a>
+
+                                <a asp-action="Edit"
+                                   asp-route-id="@item.Maduan"
+                                   class="btn btn-warning btn-sm">
+                                    ✏️ Sửa
+                                </a>
+
+                                <a asp-action="Delete"
+                                   asp-route-id="@item.Maduan"
+                                   class="btn btn-danger btn-sm">
+                                    🗑 Xóa
+                                </a>
+
+                            </td>
+
+                        </tr>
+                    }
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+</div>

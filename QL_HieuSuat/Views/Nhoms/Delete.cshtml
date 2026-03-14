@@ -1,0 +1,118 @@
+﻿@model QL_HieuSuat.Models.Nhom
+
+@{
+    ViewData["Title"] = "Xóa nhóm";
+}
+
+<div class="container mt-4">
+
+    <div class="card shadow border-0 rounded-4">
+
+        <div class="card-header bg-danger text-white">
+            <h5 class="mb-0">⚠️ Xóa nhóm</h5>
+        </div>
+
+        <div class="card-body">
+
+            @if (TempData["Error"] != null)
+            {
+                <div class="alert alert-danger">
+                    @TempData["Error"]
+                </div>
+            }
+
+            @if (TempData["Success"] != null)
+            {
+                <div class="alert alert-success">
+                    @TempData["Success"]
+                </div>
+            }
+
+            <div class="alert alert-warning">
+                Bạn có chắc chắn muốn <strong>xóa nhóm này</strong> không?
+                Hành động này có thể ảnh hưởng đến các dữ liệu liên quan.
+            </div>
+
+            <dl class="row">
+
+                <dt class="col-sm-3">
+                    Tên nhóm
+                </dt>
+
+                <dd class="col-sm-9">
+                    <strong>@Model.Tennhom</strong>
+                </dd>
+
+                <dt class="col-sm-3">
+                    Ngày tạo
+                </dt>
+
+                <dd class="col-sm-9">
+                    @Model.Ngaytao?.ToString("dd/MM/yyyy")
+                </dd>
+
+                <dt class="col-sm-3">
+                    Số thành viên
+                </dt>
+
+                <dd class="col-sm-9">
+                    <span class="badge bg-primary">
+                        @(Model.Thanhviennhoms?.Count() ?? 0) thành viên
+                    </span>
+                </dd>
+
+                <dt class="col-sm-3">
+                    Dự án đang thực hiện
+                </dt>
+
+                <dd class="col-sm-9">
+
+                    @{
+                        var duans = Model.Phancongcongviecs
+                        .Where(pc => pc.MacongviecNavigation?.MaduanNavigation != null)
+                        .Select(pc => pc.MacongviecNavigation.MaduanNavigation)
+                        .Distinct()
+                        .ToList();
+                    }
+
+                    @if (duans.Any())
+                    {
+                        foreach (var duan in duans)
+                        {
+                            <span class="badge bg-info text-dark me-1">
+                                @duan.Tenduan
+                            </span>
+                        }
+                    }
+                    else
+                    {
+                        <span class="text-muted">Không có dự án</span>
+                    }
+
+                </dd>
+
+            </dl>
+
+            <hr />
+
+            <form asp-action="Delete">
+
+                <input type="hidden" asp-for="Manhom" />
+
+                <button type="submit"
+                        class="btn btn-danger"
+                        onclick="return confirm('Bạn chắc chắn muốn xóa nhóm này?');">
+                    🗑 Xóa nhóm
+                </button>
+
+                <a asp-action="Index" class="btn btn-secondary ms-2">
+                    ⬅ Quay lại
+                </a>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</div>

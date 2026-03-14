@@ -1,0 +1,364 @@
+﻿@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = "Hệ thống quản lý hiệu suất";
+}
+
+<div class="container-fluid">
+
+    <div class="mb-3">
+        <a asp-controller="Admin" asp-action="TaoTaiKhoan" class="btn btn-primary">
+            <i class="bi bi-person-plus"></i> Tạo tài khoản mới
+        </a>
+
+        <a asp-controller="Admin" asp-action="DanhSachTaiKhoan" class="btn btn-outline-secondary ms-2">
+            <i class="bi bi-person-lines-fill"></i> Danh sách tài khoản
+        </a>
+    </div>
+
+    <h3 class="mb-4">📊 Dashboard Tổng Quan</h3>
+
+    <div class="row">
+
+        <!-- CARD 1 -->
+        <div class="col-md-4 mb-4">
+            <div class="card shadow border-0 rounded-4">
+                <div class="card-body text-center">
+                    <h5 class="card-title text-muted">Tổng Nhân Viên</h5>
+
+                    <h2 class="fw-bold text-primary">
+                        @(ViewBag.TotalNhanVien ?? 0)
+                    </h2>
+
+                </div>
+            </div>
+        </div>
+
+        
+        <!-- CARD 2 -->
+        <div class="col-md-4 mb-4">
+            <div class="card shadow border-0 rounded-4">
+                <div class="card-body text-center">
+
+                    <h5 class="card-title text-muted">Đánh Giá KPI</h5>
+
+                    <h2 class="fw-bold text-success">
+                        @(ViewBag.TotalKPI ?? 0)
+                    </h2>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- CARD 3 -->
+        <div class="col-md-4 mb-4">
+            <div class="card shadow border-0 rounded-4">
+                <div class="card-body text-center">
+
+                    <h5 class="card-title text-muted">Hiệu Suất Trung Bình</h5>
+
+                    <h2 class="fw-bold text-danger">
+                        @(ViewBag.AvgKPI ?? 0) %
+                    </h2>
+
+                </div>
+            </div>
+        </div>
+
+
+       
+        <!--Top 5 nhan vien-->
+        
+        <div class="col-md-12 mb-4">
+
+                <div class="card shadow border-0 rounded-4">
+
+                    <div class="card-body">
+
+                        <h5 class="mb-3">🏆 Top 5 Nhân Viên Hiệu Suất Cao</h5>
+
+                        <table class="table table-striped">
+
+                            <thead>
+                                <tr>
+                                    <th>STT</th>
+                                    <th>Nhân viên</th>
+                                    <th>Điểm KPI</th>
+                                </tr>
+                            </thead>
+
+                            <tbody>
+
+                                @{
+                                    var top = ViewBag.TopNhanVien as IEnumerable<dynamic>;
+                                    int stt = 1;
+                                }
+
+                                @if (top != null)
+                                {
+                                    foreach (var nv in top)
+                                    {
+                                        <tr>
+                                            <td>@stt</td>
+                                            <td>@nv.Ten</td>
+                                            <td>@Math.Round(nv.Diem, 2)</td>
+                                        </tr>
+
+                                        stt++;
+                                    }
+                                }
+
+                            </tbody>
+
+                        </table>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <!--Canh bao tre han-->
+        <div class="row mt-4">
+
+            <!-- Công việc trễ -->
+            <div class="col-md-6">
+
+                <div class="card shadow border-0 rounded-4">
+
+                    <div class="card-body">
+
+                        <h5 class="text-danger">⚠ Công Việc Đã Trễ Hạn</h5>
+
+                        <table class="table table-striped">
+
+                            <thead>
+                                <tr>
+                                    <th>Công việc</th>
+                                    <th>Hạn</th>
+                                </tr>
+                            </thead>
+
+                            <tbody>
+
+                                @{
+                                    var tre = ViewBag.CongViecTre as IEnumerable<dynamic>;
+                                }
+
+                                @if (tre != null)
+                                {
+                                    foreach (var cv in tre)
+                                    {
+                                        <tr>
+                                            <td>@cv.Ten</td>
+                                            <td>@cv.Han.ToString("dd/MM/yyyy")</td>
+                                        </tr>
+                                    }
+                                }
+
+                            </tbody>
+
+                        </table>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- Công việc sắp trễ -->
+            <div class="col-md-6">
+
+                <div class="card shadow border-0 rounded-4">
+
+                    <div class="card-body">
+
+                        <h5 class="text-warning">⏳ Công Việc Sắp Trễ</h5>
+
+                        <table class="table table-striped">
+
+                            <thead>
+                                <tr>
+                                    <th>Công việc</th>
+                                    <th>Hạn</th>
+                                </tr>
+                            </thead>
+
+                            <tbody>
+
+                                @{
+                                    var sapTre = ViewBag.CongViecSapTre as IEnumerable<dynamic>;
+                                }
+
+                                @if (sapTre != null)
+                                {
+                                    foreach (var cv in sapTre)
+                                    {
+                                        <tr>
+                                            <td>@cv.Ten</td>
+                                            <td>@cv.Han.ToString("dd/MM/yyyy")</td>
+                                        </tr>
+                                    }
+                                }
+
+                            </tbody>
+
+                        </table>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <!--Thong bao moi nhat-->
+        <div class="row mt-4">
+
+            <div class="col-md-12">
+
+                <div class="card shadow border-0 rounded-4">
+
+                    <div class="card-body">
+
+                        <h5 class="mb-3">🔔 Thông Báo Hệ Thống</h5>
+
+                        <ul class="list-group">
+
+                            @{
+                                var tb = ViewBag.ThongBaoMoi as IEnumerable<dynamic>;
+                            }
+
+                            @if (tb != null)
+                            {
+                                foreach (var t in tb)
+                                {
+                                    <li class="list-group-item d-flex justify-content-between">
+
+                                        <span>@t.NoiDung</span>
+
+                                        <small class="text-muted">
+                                            @t.ThoiGian.ToString("dd/MM HH:mm")
+                                        </small>
+
+                                    </li>
+                                }
+                            }
+
+                        </ul>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+        
+        <!--KIP thang-->
+        <div class="row">
+
+            <div class="col-md-12">
+                <div class="card shadow border-0 rounded-4">
+
+                    <div class="card-body">
+
+                        <h5 class="card-title">📈 KPI Theo Tháng</h5>
+
+                        <canvas id="kpiChart"></canvas>
+
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+
+        <!--KPI phong ban-->
+        <div class="row mt-4">
+
+            <div class="col-md-12">
+
+                <div class="card shadow border-0 rounded-4">
+
+                    <div class="card-body">
+
+                        <h5 class="mb-3">📊 KPI Theo Phòng Ban</h5>
+
+                        <canvas id="kpiPhongBanChart"></canvas>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<!--Ve so do KPI thang-->
+<script>
+
+    var data = @Html.Raw(Json.Serialize(ViewBag.KpiThang));
+
+    var labels = data.map(x => "Tháng " + x.thang);
+    var values = data.map(x => x.diem);
+
+    var ctx = document.getElementById('kpiChart').getContext('2d');
+
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Điểm KPI',
+                data: values,
+                borderWidth: 3,
+                fill: false
+            }]
+        }
+    });
+
+</script>
+
+<!--Ve so do KPI phong ban-->
+<script>
+
+    var data = @Html.Raw(Json.Serialize(ViewBag.KpiPhongBan));
+
+    var labels = data.map(x => x.phongBan);
+    var values = data.map(x => x.diem);
+
+    var ctx = document.getElementById('kpiPhongBanChart');
+
+    new Chart(ctx, {
+
+        type: 'bar',
+
+        data: {
+
+            labels: labels,
+
+            datasets: [{
+
+                label: 'Điểm KPI',
+
+                data: values,
+
+                borderWidth: 1
+
+            }]
+
+        }
+
+    });
+
+</script>

@@ -1,0 +1,61 @@
+@model List<QL_HieuSuat.Models.Binhluan>
+
+@{
+    var congViec = ViewBag.CongViec as QL_HieuSuat.Models.Congviec;
+    ViewData["Title"] = "Trò chuyện công việc";
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h4 class="mb-1">Trò chuyện công việc</h4>
+            <p class="text-muted mb-0">@(congViec?.Tencongviec ?? "")</p>
+        </div>
+        <a asp-controller="Congviecs" asp-action="Details" asp-route-id="@congViec?.Macongviec" class="btn btn-outline-secondary">
+            Quay lại chi tiết
+        </a>
+    </div>
+
+    @if (TempData["UploadError"] != null)
+    {
+        <div class="alert alert-warning">@TempData["UploadError"]</div>
+    }
+
+    <div class="card shadow-sm mb-3">
+        <div class="card-body">
+            <form asp-action="AddChatMessage" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="macongviec" value="@congViec?.Macongviec" />
+                <div class="mb-2">
+                    <textarea name="noidung" class="form-control" rows="3" placeholder="Nhập nội dung trao đổi..." required></textarea>
+                </div>
+                <button class="btn btn-primary" type="submit">Gửi tin nhắn</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-header bg-white">
+            Lịch sử trao đổi
+        </div>
+        <div class="card-body" style="max-height: 520px; overflow-y: auto;">
+            @if (Model != null && Model.Any())
+            {
+                foreach (var c in Model)
+                {
+                    <div class="border rounded p-3 mb-2">
+                        <div class="d-flex justify-content-between">
+                            <strong>@(c.ManhanvienNavigation?.Hoten ?? "Thành viên")</strong>
+                            <small class="text-muted">@c.Ngaytao.ToString("dd/MM/yyyy HH:mm")</small>
+                        </div>
+                        <div class="mt-2">@c.Noidung</div>
+                    </div>
+                }
+            }
+            else
+            {
+                <div class="text-muted">Chưa có tin nhắn nào trong cuộc trò chuyện này.</div>
+            }
+        </div>
+    </div>
+</div>

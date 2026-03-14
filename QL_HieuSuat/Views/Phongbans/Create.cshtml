@@ -1,0 +1,75 @@
+﻿@model QL_HieuSuat.Models.Phongban
+
+@{
+    ViewData["Title"] = "Thêm phòng ban";
+}
+
+<div class="container mt-4">
+
+    <div class="card shadow">
+
+        <div class="card-header bg-success text-white">
+            <h5 class="mb-0">🏢 Thêm phòng ban mới</h5>
+        </div>
+
+        <div class="card-body">
+
+            <form asp-action="Create">
+                <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+                <div class="row">
+
+                    <div class="col-md-6">
+
+                        <div class="mb-3">
+                            <label asp-for="Tenphongban" class="form-label fw-semibold">Tên phòng ban</label>
+                            <input asp-for="Tenphongban" class="form-control" placeholder="Nhập tên phòng ban..." />
+                            <span asp-validation-for="Tenphongban" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Matruongphong" class="form-label fw-semibold">Trường phòng</label>
+                            <select asp-for="Matruongphong" class="form-select" asp-items="ViewBag.Matruongphong">
+                                <option value="">-- Chọn trưởng phòng --</option>
+                            </select>
+                            <span asp-validation-for="Matruongphong" class="text-danger"></span>
+                        </div>
+
+                    </div>
+
+                    <div class="col-md-6">
+
+                        <div class="mb-3">
+                            <label asp-for="Mota" class="form-label fw-semibold">Mô tả</label>
+                            <textarea asp-for="Mota" class="form-control" rows="5"
+                                      placeholder="Nhập mô tả phòng ban..."></textarea>
+                            <span asp-validation-for="Mota" class="text-danger"></span>
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <div class="mt-4 d-flex justify-content-between">
+                    <a asp-action="Index" class="btn btn-secondary">
+                        ⬅ Quay lại
+                    </a>
+
+                    <button type="submit" class="btn btn-success">
+                        ➕ Thêm phòng ban
+                    </button>
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

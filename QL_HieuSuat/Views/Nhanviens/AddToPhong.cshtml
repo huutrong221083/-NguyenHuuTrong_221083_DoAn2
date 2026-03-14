@@ -1,0 +1,50 @@
+﻿@{
+    var phong = ViewBag.Phong;
+    var nhanviens = ViewBag.Nhanviens as List<QL_HieuSuat.Models.Nhanvien>;
+}
+
+<div class="container mt-4">
+
+    <h3>➕ Thêm nhân viên vào phòng: @phong.Tenphongban</h3>
+
+    <table class="table table-bordered table-hover mt-3">
+
+        <thead class="table-dark text-center">
+            <tr>
+                <th>Mã NV</th>
+                <th>Họ tên</th>
+                <th>Thao tác</th>
+            </tr>
+        </thead>
+
+        <tbody class="text-center">
+
+            @foreach (var nv in nhanviens)
+            {
+                <tr>
+                    <td>@nv.Manhanvien</td>
+                    <td>@nv.Hoten</td>
+
+                    <td>
+
+                        <form asp-action="AddNhanVienToPhong" method="post">
+
+                            <input type="hidden" name="manhanvien" value="@nv.Manhanvien" />
+                            <input type="hidden" name="maphongban" value="@phong.Maphongban" />
+
+                            <button type="submit" class="btn btn-success btn-sm">
+                                ➕ Thêm vào phòng
+                            </button>
+
+                        </form>
+
+                    </td>
+
+                </tr>
+            }
+
+        </tbody>
+
+    </table>
+
+</div>

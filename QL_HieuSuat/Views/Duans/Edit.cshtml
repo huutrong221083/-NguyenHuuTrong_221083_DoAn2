@@ -1,0 +1,75 @@
+﻿@model QL_HieuSuat.Models.Duan
+
+@{
+    ViewData["Title"] = "Chỉnh sửa dự án";
+}
+
+<div class="container mt-4">
+
+    <div class="card shadow-sm">
+        <div class="card-header bg-warning text-dark">
+            <h4 class="mb-0">✏️ Chỉnh sửa dự án</h4>
+        </div>
+
+        <div class="card-body">
+
+            <form asp-action="Edit">
+
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+                <input type="hidden" asp-for="Maduan" />
+
+                <div class="mb-3">
+                    <label asp-for="Tenduan" class="form-label">Tên dự án</label>
+                    <input asp-for="Tenduan" class="form-control" />
+                    <span asp-validation-for="Tenduan" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Mota" class="form-label">Mô tả</label>
+                    <textarea asp-for="Mota" class="form-control"></textarea>
+                    <span asp-validation-for="Mota" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Ngaybatdau" class="form-label">Ngày bắt đầu</label>
+                    <input asp-for="Ngaybatdau" type="date" class="form-control" />
+                    <span asp-validation-for="Ngaybatdau" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Ngayketthuc" class="form-label">Ngày kết thúc</label>
+                    <input asp-for="Ngayketthuc" type="date" class="form-control" />
+                    <span asp-validation-for="Ngayketthuc" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Trangthai" class="form-label">Trạng thái</label>
+                    <input asp-for="Trangthai" class="form-control" />
+                    <span asp-validation-for="Trangthai" class="text-danger"></span>
+                </div>
+
+                <div class="mt-3">
+
+                    <button type="submit" class="btn btn-success">
+                        💾 Lưu thay đổi
+                    </button>
+
+                    <a asp-action="Index" class="btn btn-secondary">
+                        ← Quay lại
+                    </a>
+
+                </div>
+
+            </form>
+
+        </div>
+    </div>
+
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

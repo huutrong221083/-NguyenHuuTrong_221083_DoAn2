@@ -1,0 +1,70 @@
+@model IEnumerable<QL_HieuSuat.Models.Nhanvien>
+
+<div class="card shadow-sm border-0">
+    <div class="card-body p-0">
+        <div class="table-responsive employee-table-wrap">
+            <table class="table table-hover table-sm align-middle mb-0 employee-table">
+                <thead class="table-light text-center">
+                    <tr>
+                        <th class="col-name">Họ tên</th>
+                        <th class="d-none d-xl-table-cell">Ngày sinh</th>
+                        <th>Giới tính</th>
+                        <th class="col-email">Email</th>
+                        <th>SĐT</th>
+                        <th class="col-department">Phòng ban</th>
+                        <th class="d-none d-xl-table-cell">Ngày vào</th>
+                        <th>Trạng thái</th>
+                        <th class="d-none d-lg-table-cell">Kinh nghiệm</th>
+                        <th>KPI</th>
+                        <th class="col-actions">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td class="fw-semibold text-dark col-name">
+                                <span class="text-truncate-inline" title="@item.Hoten">@item.Hoten</span>
+                            </td>
+                            <td class="text-center d-none d-xl-table-cell">@item.Ngaysinh?.ToString("dd/MM/yyyy")</td>
+                            <td class="text-center">@item.Gioitinh</td>
+                            <td class="col-email">
+                                <span class="text-truncate-inline" title="@item.Email">@item.Email</span>
+                            </td>
+                            <td class="text-center">@item.Sdt</td>
+                            <td class="col-department">
+                                <span class="text-truncate-inline" title="@item.MaphongbanNavigation?.Tenphongban">@item.MaphongbanNavigation?.Tenphongban</span>
+                            </td>
+                            <td class="text-center d-none d-xl-table-cell">@(item.Ngayvaolam?.ToString("dd/MM/yyyy"))</td>
+                            <td class="text-center">
+                                @if (item.Trangthai == 1)
+                                {
+                                    <span class="badge bg-success px-3 py-2">Đang làm</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary px-3 py-2">Nghỉ việc</span>
+                                }
+                            </td>
+                            <td class="text-center d-none d-lg-table-cell"><span class="text-muted">@item.Sonamkinhnghiem năm</span></td>
+                            <td class="text-center"><span class="badge bg-primary px-3 py-2">@item.DiemkpiTichluy</span></td>
+                            <td class="text-center col-actions">
+                                <div class="btn-group">
+                                    <a asp-action="Edit" asp-route-id="@item.Manhanvien" class="btn btn-sm btn-outline-warning">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    <a asp-action="Details" asp-route-id="@item.Manhanvien" class="btn btn-sm btn-outline-info">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                    <a asp-action="Delete" asp-route-id="@item.Manhanvien" class="btn btn-sm btn-outline-danger">
+                                        <i class="bi bi-trash"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

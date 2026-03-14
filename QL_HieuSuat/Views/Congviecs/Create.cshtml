@@ -1,0 +1,132 @@
+﻿@model QL_HieuSuat.Models.Congviec
+
+@{
+    ViewData["Title"] = "Thêm công việc";
+}
+
+<div class="container mt-4">
+
+    <h3 class="mb-4">➕ Thêm công việc</h3>
+
+    <div class="card shadow">
+
+        <div class="card-header bg-primary text-white">
+
+            @if (Model?.Macongvieccha != null)
+            {
+                <span>📄 Thêm công việc con</span>
+            }
+            else
+            {
+                <span>📁 Thêm công việc chính của dự án</span>
+            }
+
+        </div>
+
+        <div class="card-body">
+
+            <form asp-action="Create" method="post" enctype="multipart/form-data">
+
+                @Html.AntiForgeryToken()
+
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+                <!-- Dự án -->
+                <input type="hidden" asp-for="Maduan" value="@ViewBag.Maduan" />
+
+                <!-- Công việc cha -->
+                <input type="hidden" asp-for="Macongvieccha" />
+
+                @if (ViewBag.Macongvieccha != null)
+                {
+                    <div class="alert alert-info">
+
+                        📌 Đây là <b>công việc con</b> của:
+                        <b>@ViewBag.TenCongViecCha</b>
+
+                    </div>
+                }
+
+                <div class="row">
+
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="Tencongviec" class="form-label">Tên công việc</label>
+                        <input asp-for="Tencongviec" class="form-control" />
+                        <span asp-validation-for="Tencongviec" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="Hanhoanthanh" class="form-label">Hạn hoàn thành</label>
+                        <input asp-for="Hanhoanthanh" type="date" class="form-control" />
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="Douutien" class="form-label">Độ ưu tiên</label>
+                        <input asp-for="Douutien" class="form-control" />
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="Dokho" class="form-label">Độ khó</label>
+                        <input asp-for="Dokho" class="form-control" />
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="Diemcongviec" class="form-label">Điểm công việc</label>
+                        <input asp-for="Diemcongviec" class="form-control" />
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="Matrangthai" class="form-label">Trạng thái</label>
+                        <select asp-for="Matrangthai"
+                                class="form-control"
+                                asp-items="ViewBag.Matrangthai">
+                        </select>
+                    </div>
+
+                    <div class="col-md-12 mb-3">
+
+                        <label class="form-label">📎 Tài liệu công việc</label>
+
+                        <input type="file" name="TaiLieuFile" class="form-control" />
+
+                        <small class="text-muted">
+                            Có thể upload: PDF, Word, Excel, hình ảnh...
+                        </small>
+
+                    </div>
+
+                    <div class="col-md-12 mb-3">
+                        <label asp-for="Mota" class="form-label">Mô tả</label>
+                        <textarea asp-for="Mota" class="form-control" rows="3"></textarea>
+                    </div>
+
+                </div>
+
+                <hr />
+
+                <button type="submit" class="btn btn-success">
+                    💾 Lưu công việc
+                </button>
+
+                <a asp-controller="Duans"
+                   asp-action="Details"
+                   asp-route-id="@ViewBag.Maduan"
+                   class="btn btn-secondary">
+
+                    ↩ Quay lại
+
+                </a>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

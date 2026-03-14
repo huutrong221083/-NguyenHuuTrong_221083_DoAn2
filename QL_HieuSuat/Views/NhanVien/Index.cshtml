@@ -1,0 +1,247 @@
+﻿@model QL_HieuSuat.Models.ViewModels.NhanVienDashboardViewModel
+
+@{
+    ViewData["Title"] = "Trang nhân viên";
+
+    string GetStatusText(int status) => status switch
+    {
+        1 => "Chưa bắt đầu",
+        2 => "Đang thực hiện",
+        3 => "Hoàn thành",
+        4 => "Chờ duyệt",
+        5 => "Trễ hạn",
+        _ => "Không xác định"
+    };
+
+    string GetStatusBadge(int status) => status switch
+    {
+        1 => "bg-secondary",
+        2 => "bg-warning text-dark",
+        3 => "bg-success",
+        4 => "bg-info text-dark",
+        5 => "bg-danger",
+        _ => "bg-dark"
+    };
+}
+
+<div class="container-fluid">
+    <div class="mb-4 p-4 rounded-3 text-white" style="background: linear-gradient(135deg, #0d6efd 0%, #0b3d91 100%);">
+        <h3 class="mb-1">Xin chào @(string.IsNullOrWhiteSpace(Model.TenNhanVien) ? "Nhân viên" : Model.TenNhanVien)</h3>
+        <p class="mb-0 opacity-75">Theo dõi tiến độ công việc cá nhân và các đầu việc cần ưu tiên hôm nay.</p>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-lg-3 col-md-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="text-muted small">Tổng công việc</div>
+                    <div class="fs-2 fw-bold">@Model.TongCongViec</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-md-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="text-muted small">Đang thực hiện</div>
+                    <div class="fs-2 fw-bold text-warning">@Model.DangThucHien</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-md-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="text-muted small">Chờ duyệt</div>
+                    <div class="fs-2 fw-bold text-info">@Model.ChoDuyet</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-md-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="text-muted small">Quá hạn</div>
+                    <div class="fs-2 fw-bold text-danger">@Model.QuaHan</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body">
+            <form asp-action="Index" method="get" class="row g-3 align-items-end">
+                <div class="col-md-4">
+                    <label class="form-label">Lọc theo trạng thái</label>
+                    <select name="trangThaiFilter" class="form-select">
+                        <option value="">Tất cả</option>
+                        <option value="1" selected="@(Model.TrangThaiFilter == 1)">Chưa bắt đầu</option>
+                        <option value="2" selected="@(Model.TrangThaiFilter == 2)">Đang thực hiện</option>
+                        <option value="3" selected="@(Model.TrangThaiFilter == 3)">Hoàn thành</option>
+                        <option value="4" selected="@(Model.TrangThaiFilter == 4)">Chờ duyệt</option>
+                        <option value="5" selected="@(Model.TrangThaiFilter == 5)">Trễ hạn</option>
+                    </select>
+                </div>
+
+                <div class="col-md-4">
+                    <label class="form-label">Lọc theo hạn</label>
+                    <select name="hanFilter" class="form-select">
+                        <option value="" selected="@(string.IsNullOrWhiteSpace(Model.HanFilter))">Tất cả</option>
+                        <option value="homnay" selected="@(Model.HanFilter == "homnay")">Hạn hôm nay</option>
+                        <option value="3ngay" selected="@(Model.HanFilter == "3ngay")">Trong 3 ngày tới</option>
+                        <option value="quahan" selected="@(Model.HanFilter == "quahan")">Đã quá hạn</option>
+                    </select>
+                </div>
+
+                <div class="col-md-4">
+                    <button type="submit" class="btn btn-primary me-2">Áp dụng</button>
+                    <a asp-action="Index" class="btn btn-outline-secondary">Xóa lọc</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white">
+            <h5 class="mb-0 text-danger">Công việc sắp đến hạn (3 ngày)</h5>
+        </div>
+        <div class="card-body">
+            @if (Model.CongViecSapDenHan.Any())
+            {
+                <div class="row g-3">
+                    @foreach (var cv in Model.CongViecSapDenHan)
+                    {
+                        <div class="col-lg-6">
+                            <div class="border rounded p-3 h-100">
+                                <div class="d-flex justify-content-between">
+                                    <strong>@cv.TenCongViec</strong>
+                                    <span class="badge @GetStatusBadge(cv.Matrangthai)">@GetStatusText(cv.Matrangthai)</span>
+                                </div>
+                                <div class="text-muted small mt-1">Dự án: @(string.IsNullOrWhiteSpace(cv.TenDuAn) ? "-" : cv.TenDuAn)</div>
+                                <div class="mt-2">Hạn: <span class="text-danger fw-semibold">@(cv.HanHoanThanh?.ToString("dd/MM/yyyy") ?? "-")</span></div>
+                                <div class="mt-2 text-end">
+                                    <a asp-controller="Congviecs" asp-action="Details" asp-route-id="@cv.MaCongViec" class="btn btn-sm btn-outline-danger">Xem ngay</a>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="text-muted">Không có công việc nào sắp đến hạn trong 3 ngày tới.</div>
+            }
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white">
+            <h5 class="mb-0">Thông báo liên quan</h5>
+        </div>
+        <div class="card-body">
+            @if (Model.ThongBaoLienQuan.Any())
+            {
+                <ul class="list-group list-group-flush">
+                    @foreach (var tb in Model.ThongBaoLienQuan)
+                    {
+                        <li class="list-group-item d-flex justify-content-between align-items-start px-0">
+                            <div>
+                                <div class="fw-semibold">@tb.TieuDe</div>
+                                <div class="text-muted">@tb.NoiDung</div>
+                            </div>
+                            <div class="text-end">
+                                <small class="text-muted d-block">@tb.ThoiGian.ToString("dd/MM HH:mm")</small>
+                                @if (tb.MaCongViec.HasValue)
+                                {
+                                    <a asp-controller="Congviecs" asp-action="Details" asp-route-id="@tb.MaCongViec" class="btn btn-sm btn-outline-secondary mt-1">Mở</a>
+                                }
+                            </div>
+                        </li>
+                    }
+                </ul>
+            }
+            else
+            {
+                <div class="text-muted">Chưa có thông báo mới.</div>
+            }
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">Công việc của tôi</h5>
+            <span class="badge bg-success">Hoàn thành: @Model.HoanThanh</span>
+        </div>
+
+        <div class="card-body p-0">
+            @if (Model.CongViecGanNhat.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0 align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Công việc</th>
+                                <th>Dự án</th>
+                                <th>Trạng thái</th>
+                                <th>Tiến độ</th>
+                                <th>Hạn hoàn thành</th>
+                                <th>Trò chuyện</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var cv in Model.CongViecGanNhat)
+                            {
+                                var percent = Math.Max(0, Math.Min(100, cv.TienDoPhanTram));
+                                var isOverdue = cv.HanHoanThanh.HasValue && cv.HanHoanThanh.Value.Date < DateTime.Today && cv.Matrangthai != 3;
+
+                                <tr>
+                                    <td class="fw-semibold">@cv.TenCongViec</td>
+                                    <td>@(string.IsNullOrWhiteSpace(cv.TenDuAn) ? "-" : cv.TenDuAn)</td>
+                                    <td>
+                                        <span class="badge @GetStatusBadge(cv.Matrangthai)">@GetStatusText(cv.Matrangthai)</span>
+                                    </td>
+                                    <td style="min-width: 180px;">
+                                        <div class="progress" style="height: 18px;">
+                                            <div class="progress-bar bg-success" style="width:@percent%">@Math.Round(percent)%</div>
+                                        </div>
+                                    </td>
+                                    <td class="@(isOverdue ? "text-danger fw-semibold" : "")">
+                                        @(cv.HanHoanThanh?.ToString("dd/MM/yyyy") ?? "-")
+                                    </td>
+                                    <td>
+                                        @if (!cv.LaCongViecCaNhan)
+                                        {
+                                            <a asp-controller="Congviecs"
+                                               asp-action="TroChuyen"
+                                               asp-route-id="@cv.MaCongViec"
+                                               class="btn btn-sm btn-outline-success">
+                                                Trò chuyện
+                                            </a>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted small">Cá nhân</span>
+                                        }
+                                    </td>
+                                    <td class="text-end">
+                                        <a asp-controller="Congviecs"
+                                           asp-action="Details"
+                                           asp-route-id="@cv.MaCongViec"
+                                           class="btn btn-sm btn-outline-primary">
+                                            Chi tiết
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="p-4 text-muted">Bạn chưa có công việc nào được giao.</div>
+            }
+        </div>
+    </div>
+</div>

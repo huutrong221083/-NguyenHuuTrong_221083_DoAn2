@@ -1,0 +1,85 @@
+﻿@model IEnumerable<QL_HieuSuat.Models.Congviec>
+
+@{
+    ViewData["Title"] = "Quản lý công việc";
+}
+
+<h2>Quản lý công việc</h2>
+
+<p>
+    <a asp-action="Create" class="btn btn-primary">+ Thêm công việc</a>
+</p>
+
+<table class="table table-bordered table-hover">
+    <thead class="table-dark">
+        <tr>
+            <th>Tên công việc</th>
+            <th>Dự án</th>
+            <th>Mô tả</th>
+            <th>Hạn hoàn thành</th>
+            <th>Độ ưu tiên</th>
+            <th>Độ khó</th>
+            <th>Điểm</th>
+            <th>Trạng thái</th>
+            <th width="180">Thao tác</th>
+        </tr>
+    </thead>
+
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>
+                    @item.Tencongviec
+                </td>
+
+                <td>
+                    @item.MaduanNavigation?.Tenduan
+                </td>
+
+                <td>
+                    @item.Mota
+                </td>
+
+                <td>
+                    @item.Hanhoanthanh?.ToString("dd/MM/yyyy")
+                </td>
+
+                <td>
+                    @item.Douutien
+                </td>
+
+                <td>
+                    @item.Dokho
+                </td>
+
+                <td>
+                    @item.Diemcongviec
+                </td>
+
+                <td>
+                    @item.MatrangthaiNavigation?.Tentrangthai
+                </td>
+
+                <td>
+                    @* <a asp-action="Edit" asp-route-id="@item.Macongviec" class="btn btn-warning btn-sm">Sửa</a>
+
+                    <a asp-action="Details" asp-route-id="@item.Macongviec" class="btn btn-info btn-sm">Chi tiết</a> *@
+
+                
+                    <a asp-action="Edit" asp-route-id="@item.Macongviec">Sửa</a> |
+                    <a asp-action="Details" asp-route-id="@item.Macongviec">Chi tiết</a> |
+                    <a asp-controller="PhanCongCongViec"
+                       asp-action="Create"
+                       asp-route-macongviec="@item.Macongviec"
+                       class="btn btn-success">
+                        Phân công
+                    </a>
+                
+
+                    @* <a asp-action="Delete" asp-route-id="@item.Macongviec" class="btn btn-danger btn-sm">Xóa</a> *@
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

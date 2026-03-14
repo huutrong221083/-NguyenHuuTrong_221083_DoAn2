@@ -1,0 +1,77 @@
+@model List<QL_HieuSuat.Models.ViewModels.TaiKhoanItemViewModel>
+
+@{
+    ViewData["Title"] = "Danh sách tài khoản";
+}
+
+<div class="container mt-4">
+    @if (TempData["UploadSuccess"] != null)
+    {
+        <div class="alert alert-success">@TempData["UploadSuccess"]</div>
+    }
+
+    @if (TempData["UploadError"] != null)
+    {
+        <div class="alert alert-danger">@TempData["UploadError"]</div>
+    }
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4 class="mb-0">Danh sách tài khoản hệ thống</h4>
+        <a asp-action="TaoTaiKhoan" class="btn btn-primary">Tạo tài khoản mới</a>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover table-bordered mb-0 align-middle">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Email</th>
+                            <th>Tên đăng nhập</th>
+                            <th>Vai trò</th>
+                            <th>Nhân viên liên kết</th>
+                            <th>Mã nhân viên</th>
+                            <th>Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model != null && Model.Any())
+                        {
+                            foreach (var tk in Model)
+                            {
+                                <tr>
+                                    <td>@tk.Email</td>
+                                    <td>@tk.UserName</td>
+                                    <td>
+                                        <span class="badge bg-info text-dark">@tk.VaiTro</span>
+                                    </td>
+                                    <td>@(string.IsNullOrWhiteSpace(tk.TenNhanVien) ? "-" : tk.TenNhanVien)</td>
+                                    <td>@(tk.MaNhanVien?.ToString() ?? "-")</td>
+                                    <td>
+                                        <a asp-action="SuaTaiKhoan" asp-route-id="@tk.UserId" class="btn btn-sm btn-outline-warning me-1">Sửa</a>
+
+                                        <form asp-action="XoaTaiKhoan" method="post" class="d-inline">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="id" value="@tk.UserId" />
+                                            <button type="submit"
+                                                    class="btn btn-sm btn-outline-danger"
+                                                    onclick="return confirm('Bạn có chắc muốn xóa tài khoản này?');">
+                                                Xóa
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="6" class="text-center text-muted">Chưa có tài khoản nào.</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

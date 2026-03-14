@@ -1,0 +1,74 @@
+@model QL_HieuSuat.Models.ViewModels.TaoTaiKhoanViewModel
+
+@{
+    ViewData["Title"] = "Tạo tài khoản";
+}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-7">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Tạo tài khoản người dùng</h5>
+                </div>
+                <div class="card-body">
+                    @if (TempData["UploadSuccess"] != null)
+                    {
+                        <div class="alert alert-success">@TempData["UploadSuccess"]</div>
+                    }
+
+                    <div class="mb-3">
+                        <a asp-action="DanhSachTaiKhoan" class="btn btn-outline-primary btn-sm">
+                            Xem danh sách tài khoản
+                        </a>
+                    </div>
+
+                    <form asp-action="TaoTaiKhoan" method="post">
+                        @Html.AntiForgeryToken()
+
+                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                        <div class="mb-3">
+                            <label asp-for="Email" class="form-label"></label>
+                            <input asp-for="Email" class="form-control" />
+                            <span asp-validation-for="Email" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Password" class="form-label"></label>
+                            <input asp-for="Password" class="form-control" />
+                            <span asp-validation-for="Password" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="ConfirmPassword" class="form-label"></label>
+                            <input asp-for="ConfirmPassword" class="form-control" />
+                            <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="MaNhanVien" class="form-label">Nhân viên liên kết</label>
+                            <select asp-for="MaNhanVien" class="form-select" asp-items="ViewBag.NhanVienOptions"></select>
+                            <span asp-validation-for="MaNhanVien" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Role" class="form-label">Vai trò</label>
+                            <select asp-for="Role" class="form-select" asp-items="ViewBag.RoleOptions"></select>
+                            <span asp-validation-for="Role" class="text-danger"></span>
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-success">Tạo tài khoản</button>
+                            <a asp-action="Index" class="btn btn-outline-secondary">Quay lại dashboard</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
+}

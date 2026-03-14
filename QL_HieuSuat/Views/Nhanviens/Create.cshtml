@@ -1,0 +1,147 @@
+﻿@model QL_HieuSuat.Models.Nhanvien
+
+@{
+    ViewData["Title"] = "Thêm nhân viên";
+}
+
+<div class="container mt-4">
+
+    <div class="card shadow">
+        <div class="card-header bg-primary text-white">
+            <h4 class="mb-0">➕ Thêm nhân viên mới</h4>
+        </div>
+
+        <div class="card-body">
+
+            <form asp-action="Create" method="post">
+
+                <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                <div class="row">
+
+                    <!-- CỘT TRÁI -->
+                    <div class="col-md-6">
+
+                        <div class="mb-3">
+                            <label asp-for="Hoten" class="form-label fw-bold">Họ và tên</label>
+                            <input asp-for="Hoten" class="form-control" />
+                            <span asp-validation-for="Hoten" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Ngaysinh" class="form-label fw-bold">Ngày sinh</label>
+                            <input asp-for="Ngaysinh" type="date" class="form-control" />
+                            <span asp-validation-for="Ngaysinh" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Giới tính</label>
+
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input"
+                                       type="radio"
+                                       asp-for="Gioitinh"
+                                       value="Nam" />
+                                <label class="form-check-label">Nam</label>
+                            </div>
+
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input"
+                                       type="radio"
+                                       asp-for="Gioitinh"
+                                       value="Nữ" />
+                                <label class="form-check-label">Nữ</label>
+                            </div>
+
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Cccd" class="form-label fw-bold">CCCD</label>
+                            <input asp-for="Cccd" class="form-control" />
+                            <span asp-validation-for="Cccd" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Diachi" class="form-label fw-bold">Địa chỉ</label>
+                            <input asp-for="Diachi" class="form-control" />
+                            <span asp-validation-for="Diachi" class="text-danger"></span>
+                        </div>
+
+                    </div>
+
+                    <!-- CỘT PHẢI -->
+                    <div class="col-md-6">
+
+                        <div class="mb-3">
+                            <label asp-for="Email" class="form-label fw-bold">Email</label>
+                            <input asp-for="Email" type="email" class="form-control" />
+                            <span asp-validation-for="Email" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Sdt" class="form-label fw-bold"> Số điện thoại</label>
+                            <input asp-for="Sdt" class="form-control" />
+                            <span asp-validation-for="Sdt" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Ngayvaolam" class="form-label fw-bold">Ngày vào làm</label>
+                            <input asp-for="Ngayvaolam" type="date" class="form-control" />
+                            <span asp-validation-for="Ngayvaolam" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Maphongban" class="form-label fw-bold">Phòng ban</label>
+                            <select asp-for="Maphongban"
+                                    class="form-select"
+                                    asp-items="ViewBag.Maphongban">
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Trangthai" class="form-label fw-bold">Trạng thái</label>
+
+                            <select asp-for="Trangthai" class="form-select">
+                                <option value="1">Đang làm việc</option>
+                                <option value="0">Nghỉ việc</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Sonamkinhnghiem" class="form-label fw-bold">Số năm kinh nghiệm</label>
+                            <input asp-for="Sonamkinhnghiem" type="number" class="form-control" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="DiemkpiTichluy" class="form-label fw-bold">Điểm KPI tích lũy</label>
+                            <input asp-for="DiemkpiTichluy" type="number" class="form-control" />
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <hr />
+
+                <div class="text-end">
+                    <a asp-action="Index" class="btn btn-secondary">
+                        ← Quay lại
+                    </a>
+
+                    <button type="submit" class="btn btn-primary">
+                        💾 Lưu nhân viên
+                    </button>
+                </div>
+
+            </form>
+
+        </div>
+    </div>
+
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

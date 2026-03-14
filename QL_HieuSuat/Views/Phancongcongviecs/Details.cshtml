@@ -1,0 +1,74 @@
+﻿@model QL_HieuSuat.Models.Phancongcongviec
+
+@{
+    ViewData["Title"] = "Chi tiết phân công";
+}
+
+<div class="container mt-4">
+
+    <h2 class="fw-bold mb-4">📋 Chi tiết phân công công việc</h2>
+
+    <div class="card shadow">
+
+        <div class="card-header bg-primary text-white">
+            Thông tin phân công
+        </div>
+
+        <div class="card-body">
+
+            <div class="row">
+
+                <div class="col-md-6 mb-3">
+                    <label class="fw-bold">Công việc</label>
+                    <div class="form-control bg-light">
+                        @Model.MacongviecNavigation?.Tencongviec
+                    </div>
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label class="fw-bold">Nhân viên</label>
+                    <div class="form-control bg-light">
+                        @Model.ManhanvienNavigation?.Hoten
+                    </div>
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label class="fw-bold">Nhóm</label>
+                    <div class="form-control bg-light">
+                        @Model.ManhomNavigation?.Tennhom
+                    </div>
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label class="fw-bold">Phòng ban</label>
+                    <div class="form-control bg-light">
+                        @Model.MaphongbanNavigation?.Tenphongban
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="card-footer text-end">
+
+            <a asp-action="Edit"
+               asp-route-id="@Model.Maphancong"
+               class="btn btn-warning">
+
+                ✏️ Sửa
+
+            </a>
+
+            <a asp-action="Index"
+               class="btn btn-secondary">
+
+                ⬅️ Quay lại
+
+            </a>
+
+        </div>
+
+    </div>
+
+</div>

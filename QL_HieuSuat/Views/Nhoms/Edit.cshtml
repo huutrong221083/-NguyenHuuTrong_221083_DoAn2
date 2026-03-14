@@ -1,0 +1,445 @@
+﻿@model QL_HieuSuat.Models.Nhom
+
+@{
+    ViewData["Title"] = "Chỉnh sửa nhóm";
+
+    var truongNhom = Model.Thanhviennhoms
+        .FirstOrDefault(x => x.Vaitrotrongnhom == "Trưởng nhóm");
+}
+
+<div class="container mt-4">
+
+    <div class="card shadow">
+
+        <div class="card-header bg-warning">
+            <h4>✏️ Chỉnh sửa nhóm</h4>
+        </div>
+
+        <div class="card-body">
+
+            <form asp-action="Edit">
+
+                <input type="hidden" asp-for="Manhom" />
+
+                <div class="mb-3">
+                    <label class="fw-bold">Tên nhóm</label>
+                    <input asp-for="Tennhom" class="form-control" />
+                </div>
+
+                <div class="mb-3">
+                    <label class="fw-bold">Ngày tạo</label>
+                    <input class="form-control" value="@Model.Ngaytao?.ToString("dd/MM/yyyy")" readonly />
+                    <input type="hidden" asp-for="Ngaytao" />
+                </div>
+
+                <div class="d-flex gap-2">
+
+                    <button type="submit" class="btn btn-success">
+                        💾 Lưu thay đổi
+                    </button>
+
+                    <a asp-action="Index" class="btn btn-secondary">
+                        ⬅ Quay lại
+                    </a>
+
+                </div>
+
+            </form>
+
+            <hr />
+
+            <div class="d-flex gap-2 mb-3">
+
+                <button class="btn btn-primary"
+                        data-bs-toggle="modal"
+                        data-bs-target="#modalThemThanhVien">
+                    ➕ Thêm thành viên
+                </button>
+
+                <button class="btn btn-warning"
+                        data-bs-toggle="modal"
+                        data-bs-target="#modalDoiTruongNhom">
+                    👑 Đổi trưởng nhóm
+                </button>
+
+            </div>
+
+            <hr />
+
+            @* <h5>➕ Thành viên</h5>
+
+            <button class="btn btn-primary mb-2"
+                    data-bs-toggle="modal"
+                    data-bs-target="#modalThemThanhVien">
+                ➕ Thêm thành viên
+            </button> *@
+
+            <div class="modal fade" id="modalThemThanhVien">
+
+                <div class="modal-dialog">
+
+                    <div class="modal-content">
+
+                        <div class="modal-header">
+
+                            <h5 class="modal-title">➕ Thêm thành viên</h5>
+
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+
+                        </div>
+
+                        <div class="modal-body">
+
+                            <form id="formThemThanhVien">
+
+                                <input type="hidden" name="Manhom" value="@Model.Manhom" />
+
+                                <input type="text"
+                                       id="searchNhanVienAdd"
+                                       class="form-control mb-2"
+                                       placeholder="🔎 Tìm nhân viên..." />
+
+                                <select name="Manhanvien"
+                                        id="selectNhanVienAdd"
+                                        class="form-select"
+                                        size="8">
+
+                                    @{
+                                        var thanhVienIds = Model.Thanhviennhoms
+                                        .Select(x => x.Manhanvien.ToString())
+                                        .ToList();
+                                    }
+
+                                    @foreach (var nv in ViewBag.Nhanviens as List<SelectListItem>)
+                                    {
+                                        if (!thanhVienIds.Contains(nv.Value))
+                                        {
+                                            <option value="@nv.Value">@nv.Text</option>
+                                        }
+                                    }
+
+                                </select>
+
+                                <button class="btn btn-success mt-3 w-100">
+                                    Thêm vào nhóm
+                                </button>
+
+                            </form>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+           @*  <hr />
+
+            <h5>👑 Trưởng nhóm</h5>
+
+            <button class="btn btn-warning mb-2"
+                    data-bs-toggle="modal"
+                    data-bs-target="#modalDoiTruongNhom">
+                👑 Đổi trưởng nhóm
+            </button> *@
+
+            <div class="modal fade" id="modalDoiTruongNhom">
+
+                <div class="modal-dialog">
+
+                    <div class="modal-content">
+
+                        <div class="modal-header">
+
+                            <h5 class="modal-title">👑 Đổi trưởng nhóm</h5>
+
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+
+                        </div>
+
+                        <div class="modal-body">
+
+                            <form id="formDoiTruongNhom">
+
+                                <input type="hidden" name="manhom" value="@Model.Manhom" />
+
+                                <input type="text"
+                                       id="searchNhanVienLeader"
+                                       class="form-control mb-2"
+                                       placeholder="🔎 Tìm nhân viên..." />
+
+                                <select name="manhanvien"
+                                        id="selectNhanVienLeader"
+                                        class="form-select"
+                                        size="8">
+
+                                    @foreach (var nv in ViewBag.Nhanviens as List<SelectListItem>)
+                                    {
+                                        <option value="@nv.Value">@nv.Text</option>
+                                    }
+
+                                </select>
+
+                                <button class="btn btn-warning mt-3 w-100">
+                                    Đổi trưởng nhóm
+                                </button>
+
+                            </form>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <h5>👥 Thành viên nhóm</h5>
+
+            <div class="table-responsive border rounded" style="max-height:350px; overflow-y:auto;">
+
+                <table class="table table-bordered table-hover mb-0" id="tableThanhVien">
+
+                    <thead class="table-light" style="position:sticky; top:0;">
+
+                <thead>
+                    <tr>
+                        <th>Họ tên</th>
+                        <th>Vai trò</th>
+                        <th width="120">Hành động</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    @foreach (var tv in Model.Thanhviennhoms
+                    .OrderByDescending(x => x.Vaitrotrongnhom == "Trưởng nhóm"))
+                    {
+                        <tr data-id="@tv.Manhanvien">
+
+                            <td>@tv.ManhanvienNavigation.Hoten</td>
+
+                            <td>
+                                @if (tv.Vaitrotrongnhom == "Trưởng nhóm")
+                                {
+                                    <span class="badge bg-danger">👑 Trưởng nhóm</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary">Thành viên</span>
+                                }
+                            </td>
+
+                            <td>
+
+                                @if (tv.Vaitrotrongnhom != "Trưởng nhóm")
+                                {
+                                    <button type="button"
+                                            class="btn btn-sm btn-danger"
+                                            onclick="xoaThanhVien(@tv.Manhanvien)">
+                                        Xóa
+                                    </button>
+                                }
+
+                            </td>
+
+                        </tr>
+                    }
+
+                </tbody>
+
+
+            </table>
+             
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+
+        document.getElementById("searchNhanVienLeader").addEventListener("keyup", function () {
+
+    var filter = this.value.toLowerCase();
+
+    var options = document.getElementById("selectNhanVienLeader").options;
+
+    for (var i = 0; i < options.length; i++)
+    {
+    var txt = options[i].text.toLowerCase();
+
+    options[i].style.display =
+    txt.includes(filter) ? "" : "none";
+    }
+
+    });
+
+        document.getElementById("searchNhanVienAdd").addEventListener("keyup", function () {
+
+    var filter = this.value.toLowerCase();
+
+    var options = document.getElementById("selectNhanVienAdd").options;
+
+    for (var i = 0; i < options.length; i++)
+    {
+    var txt = options[i].text.toLowerCase();
+
+    options[i].style.display =
+    txt.includes(filter) ? "" : "none";
+    }
+
+    });
+
+
+        document.getElementById("formThemThanhVien").addEventListener("submit", function (e) {
+
+        e.preventDefault();
+
+        var form = this;
+        var data = new FormData(form);
+
+        fetch('/Nhoms/ThemThanhVien', {
+            method: 'POST',
+            body: data
+        })
+        .then(res => res.json())
+        .then(data => {
+
+                if (data.success) {
+
+            var select = document.getElementById("selectNhanVienAdd");
+
+    if (select.selectedIndex === -1) {
+        alert("Vui lòng chọn nhân viên");
+        return;
+    }
+
+    var selectedOption = select.options[select.selectedIndex];
+
+        var table = document.getElementById("tableThanhVien").getElementsByTagName('tbody')[0];
+
+        var row = table.insertRow();
+        row.setAttribute("data-id", data.manhanvien);
+
+        row.innerHTML = `
+            <td>${selectedOption.text}</td>
+            <td><span class="badge bg-secondary">Thành viên</span></td>
+            <td>
+                <button class="btn btn-sm btn-danger"
+                    onclick="xoaThanhVien(${data.manhanvien})">
+                    Xóa
+                </button>
+            </td>
+        `;
+
+        selectedOption.remove();
+
+    }
+        else{
+        alert(data.message);
+    }
+
+        });
+
+    });
+
+
+        document.getElementById("formDoiTruongNhom").addEventListener("submit", function (e) {
+
+        e.preventDefault();
+
+        var data = new FormData(this);
+
+        fetch('/Nhoms/DoiTruongNhom', {
+            method: 'POST',
+            body: data
+        })
+        .then(res => res.json())
+        .then(data => {
+
+                    if (data.success) {
+
+        var select = document.getElementById("selectNhanVienLeader");
+        var selectedOption = select.options[select.selectedIndex];
+        var leaderName = selectedOption.text;
+
+        var table = document.querySelector("#tableThanhVien tbody");
+
+        var rows = table.querySelectorAll("tr");
+
+            rows.forEach(r => {
+
+        var badge = r.querySelector(".badge");
+        var actionCell = r.cells[2];
+        var id = r.dataset.id;
+
+        // trưởng nhóm cũ -> thành viên
+        if (badge.innerText.includes("Trưởng nhóm")) {
+
+            badge.className = "badge bg-secondary";
+            badge.innerText = "Thành viên";
+
+            actionCell.innerHTML = `
+                <button type="button"
+                    class="btn btn-sm btn-danger"
+                    onclick="xoaThanhVien(${id})">
+                    Xóa
+                </button>
+            `;
+        }
+
+        // trưởng nhóm mới
+        if (r.cells[0].innerText === leaderName) {
+
+            badge.className = "badge bg-danger";
+            badge.innerText = "👑 Trưởng nhóm";
+
+            actionCell.innerHTML = ""; // trưởng nhóm không có nút xóa
+
+            table.prepend(r);
+        }
+
+    });
+
+    }
+
+        });
+
+    });
+
+
+        function xoaThanhVien(manhanvien) {
+
+        if (!confirm("Bạn có chắc muốn xóa thành viên này khỏi nhóm?"))
+            return;
+
+        fetch('/Nhoms/XoaThanhVien?manhom=@Model.Manhom&manhanvien=' + manhanvien)
+        .then(res => res.json())
+        .then(data => {
+
+                if (data.success) {
+
+        var rows = document.querySelectorAll("#tableThanhVien tbody tr");
+
+        rows.forEach(r => {
+
+            if (r.dataset.id == manhanvien) {
+                r.remove();
+            }
+
+        });
+
+    }
+    else{
+        alert(data.message);
+    }
+
+        });
+
+    }
+
+</script>

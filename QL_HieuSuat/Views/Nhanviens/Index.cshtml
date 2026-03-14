@@ -1,0 +1,237 @@
+﻿@model IEnumerable<QL_HieuSuat.Models.Nhanvien>
+
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = "Danh sách nhân viên";
+    var isAdmin = User.IsInRole("Admin");
+}
+
+<div class="container-fluid mt-4 nhanvien-page">
+
+    <!-- HEADER -->
+    <div class="card shadow-sm border-0 mb-3 nhanvien-header">
+        <div class="card-body d-flex justify-content-between align-items-center">
+
+            <div class="d-flex align-items-center gap-3">
+
+                     <a asp-controller="@(isAdmin ? "Admin" : "QuanLyNhanSu")"
+                         asp-action="Index"
+                   class="btn btn-light border rounded-circle">
+                    <i class="bi bi-arrow-left"></i>
+                </a>
+
+                <div>
+                    <h4 class="fw-bold mb-0 text-primary">
+                        Quản lý nhân viên
+                    </h4>
+                    <small class="text-muted">
+                        Danh sách nhân viên trong hệ thống
+                    </small>
+                </div>
+
+            </div>
+
+            <a asp-action="Create" class="btn btn-primary px-4 shadow-sm">
+                <i class="bi bi-person-plus"></i>
+                Thêm nhân viên
+            </a>
+
+        </div>
+    </div>
+
+
+    <!-- SEARCH -->
+    <div class="card shadow-sm border-0 mb-3 nhanvien-search">
+        <div class="card-body">
+
+            <div class="row align-items-center">
+
+                <div class="col-md-6">
+
+                    <div class="input-group">
+
+                        <span class="input-group-text bg-white">
+                            <i class="bi bi-search"></i>
+                        </span>
+
+                        <input type="text"
+                               name="searchString"
+                               value="@Context.Request.Query["searchString"]"
+                               class="form-control"
+                               placeholder="Tìm theo tên, email hoặc số điện thoại..." />
+
+                    </div>
+
+                </div>
+
+                <div class="col-md-6 text-end text-muted">
+                    Tổng nhân viên:
+                    <span class="fw-bold text-dark">@Model.Count()</span>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+
+
+    <!-- TABLE -->
+    <div id="resultTable">
+
+        <div class="card shadow-sm border-0">
+            <div class="card-body p-0">
+
+                <div class="employee-table-wrap">
+
+                    <table class="table table-hover align-middle mb-0 employee-table">
+
+                        <thead class="table-light text-center">
+
+                            <tr>
+                                <th class="col-name">Họ tên</th>
+                                <th class="d-none d-xl-table-cell">Ngày sinh</th>
+                                <th>Giới tính</th>
+                                <th class="col-email">Email</th>
+                                <th>SĐT</th>
+                                <th class="col-department">Phòng ban</th>
+                                <th class="d-none d-xl-table-cell">Ngày vào</th>
+                                <th>Trạng thái</th>
+                                <th class="d-none d-lg-table-cell">Kinh nghiệm</th>
+                                <th>KPI</th>
+                                <th class="col-actions">Thao tác</th>
+                            </tr>
+
+                        </thead>
+
+                        <tbody>
+
+                            @foreach (var item in Model)
+                            {
+                                <tr>
+
+                                    <td class="fw-semibold text-dark col-name">
+                                        <span class="text-truncate-inline" title="@item.Hoten">@item.Hoten</span>
+                                    </td>
+
+                                    <td class="text-center d-none d-xl-table-cell">
+                                        @item.Ngaysinh?.ToString("dd/MM/yyyy")
+                                    </td>
+
+                                    <td class="text-center">
+                                        @item.Gioitinh
+                                    </td>
+
+                                    <td class="col-email">
+                                        <span class="text-truncate-inline" title="@item.Email">@item.Email</span>
+                                    </td>
+
+                                    <td class="text-center">
+                                        @item.Sdt
+                                    </td>
+
+                                    <td class="col-department">
+                                        <span class="text-truncate-inline" title="@item.MaphongbanNavigation?.Tenphongban">@item.MaphongbanNavigation?.Tenphongban</span>
+                                    </td>
+
+                                    <td class="text-center d-none d-xl-table-cell">
+                                        @(item.Ngayvaolam?.ToString("dd/MM/yyyy"))
+                                    </td>
+
+                                    <td class="text-center">
+
+                                        @if (item.Trangthai == 1)
+                                        {
+                                            <span class="badge bg-success px-3 py-2">
+                                                Đang làm
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary px-3 py-2">
+                                                Nghỉ việc
+                                            </span>
+                                        }
+
+                                    </td>
+
+                                    <td class="text-center d-none d-lg-table-cell">
+                                        <span class="text-muted">
+                                            @item.Sonamkinhnghiem năm
+                                        </span>
+                                    </td>
+
+                                    <td class="text-center col-actions">
+
+                                        <span class="badge bg-primary px-3 py-2">
+                                            @item.DiemkpiTichluy
+                                        </span>
+
+                                    </td>
+
+                                    <td class="text-center">
+
+                                        <div class="btn-group btn-group-sm">
+
+                                            <a asp-action="Edit"
+                                               asp-route-id="@item.Manhanvien"
+                                               class="btn btn-outline-warning">
+                                                <i class="bi bi-pencil"></i>
+                                            </a>
+
+                                            <a asp-action="Details"
+                                               asp-route-id="@item.Manhanvien"
+                                               class="btn btn-sm btn-outline-info">
+                                                <i class="bi bi-eye"></i>
+                                            </a>
+
+                                            <a asp-action="Delete"
+                                               asp-route-id="@item.Manhanvien"
+                                               class="btn btn-sm btn-outline-danger">
+                                                <i class="bi bi-trash"></i>
+                                            </a>
+
+                                        </div>
+
+                                    </td>
+
+                                </tr>
+                            }
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+
+</div>
+
+
+<script>
+    let timer;
+
+    const input = document.querySelector('input[name="searchString"]');
+
+    input.addEventListener("keyup", function () {
+
+        clearTimeout(timer);
+
+        timer = setTimeout(() => {
+
+            fetch(`/Nhanviens/Search?searchString=${this.value}`)
+                .then(res => res.text())
+                .then(data => {
+
+                    document.getElementById("resultTable").innerHTML = data;
+
+                });
+
+        }, 300);
+
+    });
+
+</script>

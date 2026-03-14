@@ -1,0 +1,193 @@
+﻿@model IEnumerable<QL_HieuSuat.Models.Phongban>
+
+@{
+    ViewData["Title"] = "Quản lý phòng ban";
+}
+
+<div class="container mt-4">
+
+    <!-- HEADER -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+
+        <div>
+            <h2 class="fw-bold text-primary">
+                🏢 Quản lý phòng ban
+            </h2>
+
+            <p class="text-muted">
+                Tổng số phòng ban:
+                <span class="badge bg-primary fs-6">
+                    @Model.Count()
+                </span>
+            </p>
+
+            @if (User.IsInRole("Admin"))
+            {
+                <a asp-controller="Admin"
+                   asp-action="Index"
+                   class="btn btn-outline-secondary">
+                    ← Trang chính
+                </a>
+            }
+            else
+            {
+                <a asp-controller="NhanVien"
+                   asp-action="Index"
+                   class="btn btn-outline-secondary">
+                    ← Trang chính
+                </a>
+            }
+        </div>
+
+        <a asp-action="Create" class="btn btn-success shadow">
+            ➕ Thêm phòng ban
+        </a>
+
+    </div>
+
+
+    <!-- SEARCH -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <input type="text"
+                   id="searchPhong"
+                   class="form-control"
+                   placeholder="🔍 Tìm kiếm theo tên phòng..." />
+        </div>
+    </div>
+
+
+
+
+    <!-- TABLE -->
+    <div class="card shadow">
+        <div class="card-body p-0">
+
+
+            @if (TempData["Error"] != null)
+            {
+                <div class="alert alert-danger">
+                    @TempData["Error"]
+                </div>
+            }
+
+            @if (TempData["Success"] != null)
+            {
+                <div class="alert alert-success">
+                    @TempData["Success"]
+                </div>
+            }
+
+            <table class="table table-hover table-bordered mb-0 text-center align-middle">
+
+                <thead class="table-dark">
+                    <tr>
+                        <th>Tên phòng</th>
+                        <th>Mô tả</th>
+                        <th>Trưởng phòng</th>
+                        <th>Số nhân viên</th>
+                        <th width="220px">Thao tác</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+
+                            <td class="fw-semibold text-primary">
+                                @item.Tenphongban
+                            </td>
+
+                            <td>
+                                @item.Mota
+                            </td>
+
+                            <td>
+                                @if (item.MatruongphongNavigation != null)
+                                {
+                                    <span class="badge bg-success">
+                                        @item.MatruongphongNavigation.Hoten
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="text-muted">
+                                        Chưa có
+                                    </span>
+                                }
+                            </td>
+
+                            <td>
+                                <span class="badge bg-primary fs-6">
+                                    @(item.Nhanviens?.Count ?? 0)
+                                </span>
+                            </td>
+
+                            <td>
+
+                                <a asp-action="Edit"
+                                   asp-route-id="@item.Maphongban"
+                                   class="btn btn-warning btn-sm">
+                                    ✏ Edit
+                                </a>
+
+                                <a asp-action="Details"
+                                   asp-route-id="@item.Maphongban"
+                                   class="btn btn-info btn-sm text-white">
+                                    🔎 Details
+                                </a>
+
+                                <a asp-action="Delete"
+                                   asp-route-id="@item.Maphongban"
+                                   class="btn btn-danger btn-sm">
+                                    🗑 Delete
+                                </a>
+
+                            </td>
+
+                        </tr>
+                    }
+
+                </tbody>
+
+            </table>
+
+        </div>
+    </div>
+
+</div>
+
+
+<script>
+
+    let timer;
+
+    document.getElementById("searchPhong")
+    .addEventListener("keyup", function () {
+
+        clearTimeout(timer);
+
+        let value = this.value;
+
+        timer = setTimeout(() => {
+
+            fetch(`/Phongbans/Index?searchString=${value}`)
+            .then(response => response.text())
+            .then(html => {
+
+                let parser = new DOMParser();
+                let doc = parser.parseFromString(html, "text/html");
+
+                let newTable = doc.querySelector("table").outerHTML;
+
+                document.querySelector("table").outerHTML = newTable;
+
+            });
+
+        }, 400);
+
+    });
+
+</script>
