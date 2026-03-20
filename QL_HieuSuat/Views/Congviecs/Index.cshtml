@@ -6,9 +6,16 @@
 
 <h2>Quản lý công việc</h2>
 
+@{
+    var activeTasks = Model.Where(t => t.Matrangthai != 3).ToList();
+    var completedTasks = Model.Where(t => t.Matrangthai == 3).ToList();
+}
+
 <p>
     <a asp-action="Create" class="btn btn-primary">+ Thêm công việc</a>
 </p>
+
+<h5 class="mt-4">Công việc đang xử lý</h5>
 
 <table class="table table-bordered table-hover">
     <thead class="table-dark">
@@ -26,7 +33,7 @@
     </thead>
 
     <tbody>
-        @foreach (var item in Model)
+        @foreach (var item in activeTasks)
         {
             <tr>
                 <td>
@@ -79,6 +86,54 @@
 
                     @* <a asp-action="Delete" asp-route-id="@item.Macongviec" class="btn btn-danger btn-sm">Xóa</a> *@
                 </td>
+            </tr>
+        }
+        @if (!activeTasks.Any())
+        {
+            <tr>
+                <td colspan="9" class="text-center text-muted">Không có công việc đang xử lý.</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<h5 class="mt-4">Công việc đã hoàn thành</h5>
+
+<table class="table table-bordered table-hover">
+    <thead class="table-dark">
+        <tr>
+            <th>Tên công việc</th>
+            <th>Dự án</th>
+            <th>Mô tả</th>
+            <th>Hạn hoàn thành</th>
+            <th>Độ ưu tiên</th>
+            <th>Độ khó</th>
+            <th>Điểm</th>
+            <th>Trạng thái</th>
+            <th width="180">Thao tác</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in completedTasks)
+        {
+            <tr>
+                <td>@item.Tencongviec</td>
+                <td>@item.MaduanNavigation?.Tenduan</td>
+                <td>@item.Mota</td>
+                <td>@item.Hanhoanthanh?.ToString("dd/MM/yyyy")</td>
+                <td>@item.Douutien</td>
+                <td>@item.Dokho</td>
+                <td>@item.Diemcongviec</td>
+                <td><span class="badge bg-success">Hoàn thành</span></td>
+                <td>
+                    <a asp-action="Details" asp-route-id="@item.Macongviec">Chi tiết</a>
+                </td>
+            </tr>
+        }
+        @if (!completedTasks.Any())
+        {
+            <tr>
+                <td colspan="9" class="text-center text-muted">Chưa có công việc hoàn thành.</td>
             </tr>
         }
     </tbody>

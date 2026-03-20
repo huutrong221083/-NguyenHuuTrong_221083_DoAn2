@@ -102,47 +102,54 @@
         </div>
     </div>
 
-    <div class="row g-3 mb-3 chart-row-main">
-        <div class="col-xl-4 col-lg-5 col-12">
-            <div class="card chart-card">
-                <div class="card-header">Trạng thái công việc</div>
-                <div class="card-body chart-body chart-h-260"><canvas id="chartTrangThai"></canvas></div>
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-header bg-white d-flex flex-wrap justify-content-between align-items-center gap-2">
+            <div class="fw-semibold">Biểu đồ phân tích</div>
+            <div class="d-flex align-items-center gap-2">
+                <label for="chartSelector" class="small text-muted mb-0">Chọn biểu đồ</label>
+                <select id="chartSelector" class="form-select form-select-sm" style="min-width: 260px;">
+                    <option value="chartKPI" selected>KPI trung bình theo tháng</option>
+                    <option value="chartTrangThai">Trạng thái công việc</option>
+                    <option value="chartTopNV">Top nhân viên theo KPI</option>
+                    <option value="chartKyNang">Thống kê kỹ năng</option>
+                    <option value="chartPhong">Phân bố công việc theo phòng ban</option>
+                    <option value="chartNhom">Phân bố công việc theo nhóm</option>
+                    <option value="chartSoSanhDuAn">So sánh ngày thực tế và dự đoán AI theo dự án</option>
+                </select>
             </div>
         </div>
-        <div class="col-xl-8 col-lg-7 col-12">
-            <div class="card chart-card">
-                <div class="card-header">KPI trung bình theo tháng</div>
-                <div class="card-body chart-body chart-h-320"><canvas id="chartKPI"></canvas></div>
+        <div class="card-body">
+            <div class="chart-panel" data-chart="chartKPI">
+                <div class="chart-body chart-h-320"><canvas id="chartKPI"></canvas></div>
             </div>
-        </div>
-    </div>
 
-    <div class="row g-3 mb-3 chart-row-main">
-        <div class="col-xl-6 col-lg-6 col-12">
-            <div class="card chart-card">
-                <div class="card-header">Top nhân viên theo KPI</div>
-                <div class="card-body chart-body chart-h-320"><canvas id="chartTopNV"></canvas></div>
+            <div class="chart-panel d-none" data-chart="chartTrangThai">
+                <div class="chart-body chart-h-320"><canvas id="chartTrangThai"></canvas></div>
             </div>
-        </div>
-        <div class="col-xl-6 col-lg-6 col-12">
-            <div class="card chart-card">
-                <div class="card-header">Thống kê kỹ năng</div>
-                <div class="card-body chart-body chart-h-320"><canvas id="chartKyNang"></canvas></div>
-            </div>
-        </div>
-    </div>
 
-    <div class="row g-3 mb-4 chart-row-main">
-        <div class="col-xl-6 col-lg-6 col-12">
-            <div class="card chart-card">
-                <div class="card-header">Phân bố công việc theo phòng ban</div>
-                <div class="card-body chart-body chart-h-320"><canvas id="chartPhong"></canvas></div>
+            <div class="chart-panel d-none" data-chart="chartTopNV">
+                <div class="chart-body chart-h-320"><canvas id="chartTopNV"></canvas></div>
             </div>
-        </div>
-        <div class="col-xl-6 col-lg-6 col-12">
-            <div class="card chart-card">
-                <div class="card-header">Phân bố công việc theo nhóm</div>
-                <div class="card-body chart-body chart-h-320"><canvas id="chartNhom"></canvas></div>
+
+            <div class="chart-panel d-none" data-chart="chartKyNang">
+                <div class="chart-body chart-h-320"><canvas id="chartKyNang"></canvas></div>
+            </div>
+
+            <div class="chart-panel d-none" data-chart="chartPhong">
+                <div class="chart-body chart-h-320"><canvas id="chartPhong"></canvas></div>
+            </div>
+
+            <div class="chart-panel d-none" data-chart="chartNhom">
+                <div class="chart-body chart-h-320"><canvas id="chartNhom"></canvas></div>
+            </div>
+
+            <div class="chart-panel d-none" data-chart="chartSoSanhDuAn">
+                <div class="chart-body chart-h-320">
+                    <div id="chartSoSanhDuAnEmpty" class="d-none h-100 d-flex align-items-center justify-content-center text-muted">
+                        Chưa có dự án hoàn thành để so sánh.
+                    </div>
+                    <canvas id="chartSoSanhDuAn"></canvas>
+                </div>
             </div>
         </div>
     </div>
@@ -150,8 +157,8 @@
     <div class="card shadow-sm border-0 mb-4">
         <div class="card-header bg-white fw-semibold">Tiến độ dự án</div>
         <div class="card-body p-0">
-            <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0">
+            <div class="table-responsive project-progress-wrap">
+                <table class="table table-sm table-hover align-middle mb-0 project-progress-table">
                     <thead class="table-light">
                         <tr>
                             <th>Dự án</th>
@@ -165,7 +172,7 @@
                             <tr>
                                 <td class="fw-semibold">@da.TenDuAn</td>
                                 <td>
-                                    <div class="progress" style="height: 1rem;">
+                                    <div class="progress" style="height: 0.85rem;">
                                         <div class="progress-bar bg-success" style="width:@percent%">@percent%</div>
                                     </div>
                                 </td>
@@ -228,7 +235,7 @@
                 </div>
 
                 <div class="col-lg-8">
-                    <div class="table-responsive">
+                    <div class="table-responsive report-fixed-table-wrap">
                         <table class="table table-sm table-hover align-middle mb-0">
                             <thead class="table-light">
                                 <tr>
@@ -268,7 +275,34 @@
             </div>
         </div>
     </div>
+
 </div>
+
+<style>
+    .project-progress-wrap {
+        max-height: 300px;
+        overflow-y: auto;
+    }
+
+    .report-fixed-table-wrap {
+        max-height: 360px;
+        overflow-y: auto;
+    }
+
+    .project-progress-wrap thead th,
+    .report-fixed-table-wrap thead th {
+        position: sticky;
+        top: 0;
+        z-index: 1;
+        background: #f8f9fa;
+    }
+
+    .project-progress-table td,
+    .project-progress-table th {
+        padding-top: 0.45rem;
+        padding-bottom: 0.45rem;
+    }
+</style>
 
 <div class="modal fade" id="exportReportModal" tabindex="-1" aria-labelledby="exportReportModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
@@ -318,9 +352,22 @@
     </div>
 </div>
 
+@{
+    var hoatDongSoSanhDuAn = (ViewBag.HoatDongSoSanhDuAn as IEnumerable<dynamic>) ?? Enumerable.Empty<dynamic>();
+    var soSanhDuAnLabels = hoatDongSoSanhDuAn.Select(x => (x?.TenDuAn?.ToString() ?? "-")).ToList();
+    var soSanhDuAnNgayThucTe = hoatDongSoSanhDuAn
+        .Select(x => ((DateTime?)x?.NgayHoanThanhThucTe)?.ToString("yyyy-MM-dd"))
+        .ToList();
+    var soSanhDuAnNgayAIDuDoan = hoatDongSoSanhDuAn
+        .Select(x => ((DateTime?)x?.NgayDuDoanAI)?.ToString("yyyy-MM-dd"))
+        .ToList();
+}
+
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <script>
+    const chartInstances = {};
+
     const baseFont = {
         family: "Segoe UI, Tahoma, sans-serif",
         size: 12
@@ -340,13 +387,40 @@
         }
     };
 
-    new Chart(document.getElementById("chartTrangThai"), {
+    const trangThaiLabels = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.TrangThaiLabels));
+    const trangThaiData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.TrangThaiData));
+
+    const normalizeLabel = (value) =>
+        (value || "")
+            .toString()
+            .trim()
+            .toLowerCase()
+            .normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "");
+
+    const statusColorMap = {
+        "chua bat dau": "#22c55e",
+        "dang thuc hien": "#f59e0b",
+        "hoan thanh": "#3b82f6",
+        "cho duyet": "#6366f1",
+        "tre": "#8b5cf6",
+        "khong duyet": "#ef4444",
+        "tam dung": "#06b6d4"
+    };
+
+    const fallbackStatusColors = ["#f97316", "#14b8a6", "#ec4899", "#84cc16", "#a855f7", "#0ea5e9"];
+    const trangThaiColors = trangThaiLabels.map((label, idx) => {
+        const key = normalizeLabel(label);
+        return statusColorMap[key] || fallbackStatusColors[idx % fallbackStatusColors.length];
+    });
+
+    chartInstances.chartTrangThai = new Chart(document.getElementById("chartTrangThai"), {
         type: "doughnut",
         data: {
-            labels: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.TrangThaiLabels)),
+            labels: trangThaiLabels,
             datasets: [{
-                data: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.TrangThaiData)),
-                backgroundColor: ["#22c55e", "#f59e0b", "#ef4444", "#3b82f6", "#8b5cf6"]
+                data: trangThaiData,
+                backgroundColor: trangThaiColors
             }]
         },
         options: {
@@ -355,7 +429,7 @@
         }
     });
 
-    new Chart(document.getElementById("chartKPI"), {
+    chartInstances.chartKPI = new Chart(document.getElementById("chartKPI"), {
         type: "line",
         data: {
             labels: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.Thang)),
@@ -379,7 +453,7 @@
         }
     });
 
-    new Chart(document.getElementById("chartTopNV"), {
+    chartInstances.chartTopNV = new Chart(document.getElementById("chartTopNV"), {
         type: "bar",
         data: {
             labels: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.TopNVLabels)),
@@ -398,7 +472,7 @@
         }
     });
 
-    new Chart(document.getElementById("chartKyNang"), {
+    chartInstances.chartKyNang = new Chart(document.getElementById("chartKyNang"), {
         type: "bar",
         data: {
             labels: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.KyNangLabels)),
@@ -417,7 +491,7 @@
         }
     });
 
-    new Chart(document.getElementById("chartPhong"), {
+    chartInstances.chartPhong = new Chart(document.getElementById("chartPhong"), {
         type: "bar",
         data: {
             labels: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.PhongLabels)),
@@ -436,7 +510,7 @@
         }
     });
 
-    new Chart(document.getElementById("chartNhom"), {
+    chartInstances.chartNhom = new Chart(document.getElementById("chartNhom"), {
         type: "bar",
         data: {
             labels: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.NhomLabels)),
@@ -454,6 +528,118 @@
             }
         }
     });
+
+    const chartSoSanhDuAnElement = document.getElementById("chartSoSanhDuAn");
+    const chartSoSanhDuAnEmptyElement = document.getElementById("chartSoSanhDuAnEmpty");
+    if (chartSoSanhDuAnElement) {
+        const toTimestamp = (isoDate) => {
+            if (!isoDate) {
+                return null;
+            }
+
+            const time = Date.parse(isoDate);
+            return Number.isNaN(time) ? null : time;
+        };
+
+        const formatTimestamp = (ts) => {
+            if (ts === null || ts === undefined || Number.isNaN(ts)) {
+                return "-";
+            }
+
+            return new Date(ts).toLocaleDateString("vi-VN");
+        };
+
+        const rawNgayThucTe = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(soSanhDuAnNgayThucTe));
+        const rawNgayAIDuDoan = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(soSanhDuAnNgayAIDuDoan));
+
+        const ngayThucTeData = rawNgayThucTe.map((x) => toTimestamp(x));
+        const ngayAIDuDoanData = rawNgayAIDuDoan.map((x) => toTimestamp(x));
+        const allValues = [...ngayThucTeData, ...ngayAIDuDoanData].filter((x) => x !== null);
+
+        if (allValues.length === 0) {
+            chartSoSanhDuAnElement.classList.add("d-none");
+            chartSoSanhDuAnEmptyElement?.classList.remove("d-none");
+        } else {
+            chartSoSanhDuAnElement.classList.remove("d-none");
+            chartSoSanhDuAnEmptyElement?.classList.add("d-none");
+        }
+
+        if (allValues.length > 0) {
+            chartInstances.chartSoSanhDuAn = new Chart(chartSoSanhDuAnElement, {
+                type: "bar",
+                data: {
+                    labels: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(soSanhDuAnLabels)),
+                    datasets: [{
+                        label: "Ngày hoàn thành thực tế",
+                        data: ngayThucTeData,
+                        backgroundColor: "rgba(22,163,74,0.78)",
+                        borderColor: "#16a34a",
+                        borderWidth: 1,
+                        borderRadius: 6
+                    }, {
+                        label: "Ngày dự đoán AI",
+                        data: ngayAIDuDoanData,
+                        backgroundColor: "rgba(45,127,249,0.78)",
+                        borderColor: "#2d7ff9",
+                        borderWidth: 1,
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    ...commonOptions,
+                    plugins: {
+                        ...commonOptions.plugins,
+                        tooltip: {
+                            callbacks: {
+                                label: (context) => {
+                                    const label = context.dataset.label || "";
+                                    const value = context.parsed?.y;
+                                    return `${label}: ${formatTimestamp(value)}`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            grid: { color: gridColor },
+                            ticks: {
+                                callback: (value) => formatTimestamp(Number(value))
+                            }
+                        },
+                        x: {
+                            grid: { color: "transparent" },
+                            ticks: {
+                                maxRotation: 40,
+                                minRotation: 0
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    }
+
+    const chartSelector = document.getElementById("chartSelector");
+    const chartPanels = Array.from(document.querySelectorAll(".chart-panel"));
+
+    const showChartPanel = (chartId) => {
+        chartPanels.forEach((panel) => {
+            const isActive = panel.dataset.chart === chartId;
+            panel.classList.toggle("d-none", !isActive);
+        });
+
+        const chart = chartInstances[chartId];
+        if (chart) {
+            setTimeout(() => chart.resize(), 50);
+        }
+    };
+
+    if (chartSelector) {
+        showChartPanel(chartSelector.value);
+        chartSelector.addEventListener("change", (event) => {
+            showChartPanel(event.target.value);
+        });
+    }
 
     document.querySelectorAll(".auto-filter").forEach((select) => {
         select.addEventListener("change", () => {

@@ -169,7 +169,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
 
         modelBuilder.Entity<Nhatkycongviec>(entity =>
         {
-            entity.Property(e => e.Manhatkycongviec).ValueGeneratedNever();
+            entity.Property(e => e.Manhatkycongviec).ValueGeneratedOnAdd();
 
             entity.HasOne(d => d.MacongviecNavigation).WithMany(p => p.Nhatkycongviecs)
                 .OnDelete(DeleteBehavior.ClientSetNull)
@@ -228,7 +228,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
 
         modelBuilder.Entity<Thongbao>(entity =>
         {
-            entity.Property(e => e.Mathongbao).ValueGeneratedNever();
+            entity.Property(e => e.Mathongbao).ValueGeneratedOnAdd();
 
             entity.HasMany(d => d.Manhanviens).WithMany(p => p.Mathongbaos)
                 .UsingEntity<Dictionary<string, object>>(

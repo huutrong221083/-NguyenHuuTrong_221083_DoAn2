@@ -19,8 +19,8 @@
                 <p class="text-muted mb-0">Trưởng phòng: @Model.TenTruongPhong</p>
             </div>
             <div class="d-flex gap-2">
-                <a asp-controller="Phancongcongviecs" asp-action="Create" class="btn btn-outline-secondary">
-                    <i class="bi bi-diagram-3"></i> Phân công công việc
+                <a asp-controller="Congviecs" asp-action="Index" class="btn btn-outline-secondary">
+                    <i class="bi bi-list-task"></i> Chọn công việc để giao
                 </a>
                 <a asp-controller="Congviecs" asp-action="XacNhanTienDo" class="btn btn-outline-primary">
                     <i class="bi bi-check2-square"></i> Duyệt tiến độ
@@ -58,6 +58,14 @@
                     <div class="card-body">
                         <div class="text-muted small">Chờ duyệt</div>
                         <div class="h3 fw-bold mb-0">@Model.CongViecChoDuyet</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body">
+                        <div class="text-muted small">Hoàn thành</div>
+                        <div class="h3 fw-bold mb-0 text-success">@Model.CongViecHoanThanh</div>
                     </div>
                 </div>
             </div>
@@ -112,8 +120,8 @@
             </div>
         </div>
 
-        <div class="card border-0 shadow-sm">
-            <div class="card-header bg-white fw-semibold">Công việc thuộc phạm vi phòng ban</div>
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-white fw-semibold">Công việc đang xử lý thuộc phạm vi phòng ban</div>
             <div class="card-body p-0">
                 <div class="table-responsive">
                     <table class="table table-hover align-middle mb-0">
@@ -132,8 +140,18 @@
                             {
                                 @foreach (var cv in Model.CongViecs)
                                 {
-                                    var statusClass = cv.Matrangthai == 3 ? "bg-success" : cv.Matrangthai == 4 ? "bg-info" : cv.Matrangthai == 2 ? "bg-warning text-dark" : "bg-secondary";
-                                    var statusText = cv.Matrangthai == 3 ? "Hoàn thành" : cv.Matrangthai == 4 ? "Chờ duyệt" : cv.Matrangthai == 2 ? "Đang thực hiện" : "Chưa bắt đầu";
+                                    var statusClass = cv.Matrangthai == 3 ? "bg-success" :
+                                        cv.Matrangthai == 4 ? "bg-info" :
+                                        cv.Matrangthai == 2 ? "bg-warning text-dark" :
+                                        cv.Matrangthai == 5 ? "bg-danger" :
+                                        cv.Matrangthai == 6 ? "bg-dark" :
+                                        cv.Matrangthai == 7 ? "bg-secondary" : "bg-secondary";
+                                    var statusText = cv.Matrangthai == 3 ? "Hoàn thành" :
+                                        cv.Matrangthai == 4 ? "Chờ duyệt" :
+                                        cv.Matrangthai == 2 ? "Đang thực hiện" :
+                                        cv.Matrangthai == 5 ? "Trễ" :
+                                        cv.Matrangthai == 6 ? "Không duyệt" :
+                                        cv.Matrangthai == 7 ? "Tạm dừng" : "Chưa bắt đầu";
 
                                     <tr>
                                         <td class="fw-semibold">@cv.TenCongViec</td>
@@ -146,6 +164,57 @@
                                         <td><span class="badge @statusClass">@statusText</span></td>
                                         <td>@(cv.HanHoanThanh?.ToString("dd/MM/yyyy") ?? "-")</td>
                                         <td>
+                                            <div class="d-flex gap-2 flex-wrap">
+                                                <a asp-controller="Congviecs" asp-action="Details" asp-route-id="@cv.MaCongViec" class="btn btn-sm btn-outline-primary">Chi tiết</a>
+                                                <a asp-controller="Phancongcongviecs" asp-action="Create" asp-route-macongviec="@cv.MaCongViec" class="btn btn-sm btn-outline-secondary">Giao việc</a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                            else
+                            {
+                                <tr>
+                                    <td colspan="6" class="text-center text-muted py-3">Không có công việc đang xử lý trong phạm vi phòng.</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white fw-semibold">Công việc đã hoàn thành</div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Công việc</th>
+                                <th>Dự án</th>
+                                <th>Tiến độ</th>
+                                <th>Trạng thái</th>
+                                <th>Hạn</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (Model.CongViecHoanThanhList.Any())
+                            {
+                                @foreach (var cv in Model.CongViecHoanThanhList)
+                                {
+                                    <tr>
+                                        <td class="fw-semibold">@cv.TenCongViec</td>
+                                        <td>@(string.IsNullOrWhiteSpace(cv.TenDuAn) ? "-" : cv.TenDuAn)</td>
+                                        <td style="min-width:180px">
+                                            <div class="progress" style="height: 18px;">
+                                                <div class="progress-bar bg-success" role="progressbar" style="width:@cv.TienDo%">@cv.TienDo%</div>
+                                            </div>
+                                        </td>
+                                        <td><span class="badge bg-success">Hoàn thành</span></td>
+                                        <td>@(cv.HanHoanThanh?.ToString("dd/MM/yyyy") ?? "-")</td>
+                                        <td>
                                             <a asp-controller="Congviecs" asp-action="Details" asp-route-id="@cv.MaCongViec" class="btn btn-sm btn-outline-primary">Chi tiết</a>
                                         </td>
                                     </tr>
@@ -154,7 +223,7 @@
                             else
                             {
                                 <tr>
-                                    <td colspan="6" class="text-center text-muted py-3">Chưa có công việc nào trong phạm vi phòng.</td>
+                                    <td colspan="6" class="text-center text-muted py-3">Chưa có công việc hoàn thành.</td>
                                 </tr>
                             }
                         </tbody>

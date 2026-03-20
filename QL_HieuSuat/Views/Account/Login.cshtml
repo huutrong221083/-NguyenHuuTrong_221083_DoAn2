@@ -1,4 +1,5 @@
-﻿@{
+﻿@model QL_HieuSuat.Models.ViewModels.LoginViewModel
+@{
     ViewData["Title"] = "Đăng nhập";
     Layout = null;
 }
@@ -81,46 +82,42 @@
 
             </div>
 
-            <form method="post">
+            <form method="post" asp-action="Login" novalidate>
+                @Html.AntiForgeryToken()
+                <div asp-validation-summary="ModelOnly" class="text-danger small mb-2"></div>
 
                 <div class="mb-3">
-                    <label class="form-label">Email</label>
+                    <label asp-for="Email" class="form-label">Email <span class="text-danger">*</span></label>
 
                     <div class="input-group">
                         <span class="input-group-text">
                             <i class="bi bi-envelope"></i>
                         </span>
 
-                        <input type="text"
-                               name="email"
+                        <input asp-for="Email"
+                               type="email"
                                class="form-control"
                                placeholder="Nhập email"
-                               required />
+                               autocomplete="username" />
                     </div>
+                    <span asp-validation-for="Email" class="text-danger small"></span>
                 </div>
 
                 <div class="mb-3">
-                    <label class="form-label">Mật khẩu</label>
+                    <label asp-for="Password" class="form-label">Mật khẩu <span class="text-danger">*</span></label>
 
                     <div class="input-group">
                         <span class="input-group-text">
                             <i class="bi bi-lock"></i>
                         </span>
 
-                        <input type="password"
-                               name="password"
+                        <input asp-for="Password"
                                class="form-control"
                                placeholder="Nhập mật khẩu"
-                               required />
+                               autocomplete="current-password" />
                     </div>
+                    <span asp-validation-for="Password" class="text-danger small"></span>
                 </div>
-
-                @if (ViewBag.Error != null)
-                {
-                    <div class="alert alert-danger text-center">
-                        @ViewBag.Error
-                    </div>
-                }
 
                 <div class="d-grid mt-3">
                     <button type="submit"
@@ -149,5 +146,21 @@
         </div>
     </div>
 
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
+    <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
+    <script>
+        (function () {
+            const form = document.querySelector("form");
+            if (!form || !window.jQuery) return;
+
+            const $form = window.jQuery(form);
+            $form.find("input, select, textarea").on("blur change input", function () {
+                if ($form.data("validator")) {
+                    window.jQuery(this).valid();
+                }
+            });
+        })();
+    </script>
 </body>
 </html>

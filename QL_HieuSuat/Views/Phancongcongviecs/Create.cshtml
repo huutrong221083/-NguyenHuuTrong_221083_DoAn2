@@ -10,6 +10,13 @@
 
 <div class="card shadow p-4">
 
+    @if (!string.IsNullOrWhiteSpace(ViewBag.DepartmentScopeMessage as string))
+    {
+        <div class="alert alert-primary">
+            @ViewBag.DepartmentScopeMessage
+        </div>
+    }
+
     @if (!string.IsNullOrWhiteSpace(ViewBag.ScopeDescription as string))
     {
         <div class="alert alert-info">

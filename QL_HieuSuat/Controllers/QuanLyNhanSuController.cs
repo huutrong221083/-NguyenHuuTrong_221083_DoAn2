@@ -18,6 +18,59 @@ public class QuanLyNhanSuController : Controller
         _context = context;
     }
 
+    public async Task<IActionResult> ThongTinVaXepLoai()
+    {
+        var context = await GetCurrentNhanVienContextAsync();
+        if (!context.NhanVienId.HasValue || context.NhanVien == null)
+        {
+            TempData["UploadError"] = "Không tìm thấy hồ sơ nhân sự hiện tại.";
+            return RedirectToAction(nameof(Index));
+        }
+
+        var nhanVien = await _context.Nhanviens
+            .AsNoTracking()
+            .Include(nv => nv.MaphongbanNavigation)
+            .Include(nv => nv.Thanhviennhoms)
+                .ThenInclude(tv => tv.ManhomNavigation)
+            .Include(nv => nv.Kynangnhanviens)
+                .ThenInclude(kn => kn.MakynangNavigation)
+            .FirstOrDefaultAsync(nv => nv.Manhanvien == context.NhanVienId.Value);
+
+        if (nhanVien == null)
+        {
+            TempData["UploadError"] = "Không tìm thấy hồ sơ nhân sự hiện tại.";
+            return RedirectToAction(nameof(Index));
+        }
+
+        var groupedKpis = await GetGroupedKpiByPeriodAsync(context.NhanVienId.Value);
+        var latestGroup = groupedKpis
+            .OrderByDescending(g => g.Nam ?? 0)
+            .ThenByDescending(g => g.Thang ?? 0)
+            .FirstOrDefault();
+
+        var latestScore = latestGroup is null ? null : CalculateWeightedScore(latestGroup.Items);
+
+        var model = new QuanLyNhanSuThongTinXepLoaiViewModel
+        {
+            HoSoNhanVien = nhanVien,
+            KyDanhGiaGanNhat = latestGroup is null ? null : BuildPeriodLabel(latestGroup.Thang, latestGroup.Nam),
+            DiemDanhGiaGanNhat = latestScore,
+            XepLoaiGanNhat = latestScore.HasValue ? XepLoaiFromScore(latestScore.Value) : "Chưa có dữ liệu",
+            ChiTietDanhGiaGanNhat = latestGroup?.Items
+                .OrderByDescending(x => x.MadoanhmucNavigation.Trongso ?? 0)
+                .ThenBy(x => x.MadoanhmucNavigation.Tendoanhmuc)
+                .Select(x => new QuanLyNhanSuKpiChiTietViewModel
+                {
+                    TenDanhMuc = x.MadoanhmucNavigation.Tendoanhmuc,
+                    DiemSo = NormalizeScore(x.Diemso),
+                    TrongSo = x.MadoanhmucNavigation.Trongso
+                })
+                .ToList() ?? new List<QuanLyNhanSuKpiChiTietViewModel>()
+        };
+
+        return View(model);
+    }
+
     public async Task<IActionResult> Index(
         string? keyword,
         string? alphabetFilter,
@@ -104,6 +157,113 @@ public class QuanLyNhanSuController : Controller
         var fileName = $"NhanSu_{DateTime.Now:yyyyMMdd_HHmmss}.csv";
 
         return File(bytes, "text/csv; charset=utf-8", fileName);
+    }
+
+    public async Task<IActionResult> DanhGiaCaNhan(string? ky)
+    {
+        var context = await GetCurrentNhanVienContextAsync();
+        if (!context.NhanVienId.HasValue)
+        {
+            TempData["UploadError"] = "Không tìm thấy hồ sơ nhân sự hiện tại.";
+            return RedirectToAction(nameof(Index));
+        }
+
+        var groupedKpis = await GetGroupedKpiByPeriodAsync(context.NhanVienId.Value);
+
+        var history = groupedKpis
+            .OrderByDescending(g => g.Nam ?? 0)
+            .ThenByDescending(g => g.Thang ?? 0)
+            .Select(g =>
+            {
+                var score = CalculateWeightedScore(g.Items) ?? 0;
+                return new QuanLyNhanSuDanhGiaKyViewModel
+                {
+                    Thang = g.Thang,
+                    Nam = g.Nam,
+                    DiemTongHop = Math.Round(score, 2),
+                    XepLoai = XepLoaiFromScore(score),
+                    SoDanhMuc = g.Items.Count,
+                    MaKy = BuildPeriodCode(g.Thang, g.Nam)
+                };
+            })
+            .ToList();
+
+        var selectedPeriod = history.FirstOrDefault(h => h.MaKy == ky)?.MaKy ?? history.FirstOrDefault()?.MaKy;
+        var selectedGroup = groupedKpis.FirstOrDefault(g => BuildPeriodCode(g.Thang, g.Nam) == selectedPeriod);
+        var selectedScore = selectedGroup is null ? null : CalculateWeightedScore(selectedGroup.Items);
+
+        var model = new QuanLyNhanSuDanhGiaCaNhanViewModel
+        {
+            TenNhanVien = context.NhanVien?.Hoten,
+            LichSuDanhGia = history,
+            KyDangXem = selectedGroup is null ? null : BuildPeriodLabel(selectedGroup.Thang, selectedGroup.Nam),
+            DiemKyDangXem = selectedScore,
+            XepLoaiKyDangXem = selectedScore.HasValue ? XepLoaiFromScore(selectedScore.Value) : "Chưa có dữ liệu",
+            ChiTietKyDangXem = selectedGroup?.Items
+                .OrderByDescending(x => x.MadoanhmucNavigation.Trongso ?? 0)
+                .ThenBy(x => x.MadoanhmucNavigation.Tendoanhmuc)
+                .Select(x => new QuanLyNhanSuKpiChiTietViewModel
+                {
+                    TenDanhMuc = x.MadoanhmucNavigation.Tendoanhmuc,
+                    DiemSo = NormalizeScore(x.Diemso),
+                    TrongSo = x.MadoanhmucNavigation.Trongso
+                })
+                .ToList() ?? new List<QuanLyNhanSuKpiChiTietViewModel>(),
+            BieuDoNhan = history
+                .OrderBy(h => h.Nam ?? 0)
+                .ThenBy(h => h.Thang ?? 0)
+                .Select(h => BuildPeriodLabel(h.Thang, h.Nam))
+                .ToList(),
+            BieuDoDiem = history
+                .OrderBy(h => h.Nam ?? 0)
+                .ThenBy(h => h.Thang ?? 0)
+                .Select(h => h.DiemTongHop)
+                .ToList()
+        };
+
+        return View(model);
+    }
+
+    public async Task<IActionResult> YeuCauChinhSuaThongTin()
+    {
+        var keywords = new[]
+        {
+            "yêu cầu chỉnh sửa",
+            "yeu cau chinh sua",
+            "cập nhật thông tin",
+            "cap nhat thong tin",
+            "chỉnh sửa hồ sơ",
+            "chinh sua ho so"
+        };
+
+        var logs = await _context.Nhatkyhoatdongs
+            .AsNoTracking()
+            .Include(nk => nk.ManhanvienNavigation)
+            .OrderByDescending(nk => nk.Thoigian)
+            .Take(300)
+            .ToListAsync();
+
+        var requests = logs
+            .Where(nk => !string.IsNullOrWhiteSpace(nk.Hanhdong)
+                && keywords.Any(k => nk.Hanhdong!.Contains(k, StringComparison.OrdinalIgnoreCase)))
+            .Select(nk => new QuanLyNhanSuYeuCauChinhSuaItemViewModel
+            {
+                MaYeuCau = nk.Manhatkyhoatdong,
+                MaNhanVien = nk.Manhanvien,
+                TenNhanVien = nk.ManhanvienNavigation?.Hoten,
+                EmailNhanVien = nk.ManhanvienNavigation?.Email,
+                NoiDungYeuCau = nk.Hanhdong,
+                ThoiGianGui = nk.Thoigian
+            })
+            .ToList();
+
+        var model = new QuanLyNhanSuYeuCauChinhSuaViewModel
+        {
+            TongYeuCau = requests.Count,
+            YeuCaus = requests
+        };
+
+        return View(model);
     }
 
     private async Task<List<QuanLyNhanSuNhanVienItemViewModel>> BuildEmployeeItemsAsync(
@@ -235,6 +395,112 @@ public class QuanLyNhanSuController : Controller
         }
 
         return age < 0 ? 0 : age;
+    }
+
+    private sealed class KpiPeriodGroup
+    {
+        public int? Thang { get; set; }
+        public int? Nam { get; set; }
+        public List<Ketquakpi> Items { get; set; } = new();
+    }
+
+    private async Task<(Nhanvien? NhanVien, int? NhanVienId)> GetCurrentNhanVienContextAsync()
+    {
+        var currentUserName = User.Identity?.Name;
+        if (string.IsNullOrWhiteSpace(currentUserName))
+        {
+            return (null, null);
+        }
+
+        var appUser = await _context.Users
+            .Include(u => u.Nhanvien)
+            .AsNoTracking()
+            .FirstOrDefaultAsync(u => u.UserName == currentUserName || u.Email == currentUserName);
+
+        var nhanVienId = appUser?.MaNhanVien ?? appUser?.Nhanvien?.Manhanvien;
+        var nhanVien = appUser?.Nhanvien;
+
+        if (!nhanVienId.HasValue)
+        {
+            nhanVien = await _context.Nhanviens
+                .AsNoTracking()
+                .FirstOrDefaultAsync(nv => nv.Email == currentUserName);
+
+            nhanVienId = nhanVien?.Manhanvien;
+        }
+
+        return (nhanVien, nhanVienId);
+    }
+
+    private async Task<List<KpiPeriodGroup>> GetGroupedKpiByPeriodAsync(int nhanVienId)
+    {
+        var kpiData = await _context.Ketquakpis
+            .Where(k => k.Manhanvien == nhanVienId)
+            .Include(k => k.MadoanhmucNavigation)
+            .AsNoTracking()
+            .ToListAsync();
+
+        return kpiData
+            .GroupBy(k => new { k.Thang, k.Nam })
+            .Select(g => new KpiPeriodGroup
+            {
+                Thang = g.Key.Thang,
+                Nam = g.Key.Nam,
+                Items = g.ToList()
+            })
+            .ToList();
+    }
+
+    private static double NormalizeScore(double? rawScore)
+    {
+        var score = rawScore ?? 0;
+        return score <= 10 ? score * 10 : score;
+    }
+
+    private static double? CalculateWeightedScore(List<Ketquakpi> kpis)
+    {
+        if (!kpis.Any())
+        {
+            return null;
+        }
+
+        var totalWeight = kpis.Sum(k => k.MadoanhmucNavigation.Trongso ?? 1);
+        if (totalWeight <= 0)
+        {
+            return Math.Round(kpis.Average(k => NormalizeScore(k.Diemso)), 2);
+        }
+
+        var totalScore = kpis.Sum(k => NormalizeScore(k.Diemso) * (k.MadoanhmucNavigation.Trongso ?? 1));
+        return Math.Round(totalScore / totalWeight, 2);
+    }
+
+    private static string BuildPeriodCode(int? thang, int? nam)
+    {
+        return $"{nam ?? 0:D4}-{thang ?? 0:D2}";
+    }
+
+    private static string BuildPeriodLabel(int? thang, int? nam)
+    {
+        if (thang.HasValue && nam.HasValue)
+        {
+            return $"Tháng {thang.Value:D2}/{nam.Value}";
+        }
+
+        if (nam.HasValue)
+        {
+            return $"Năm {nam.Value}";
+        }
+
+        return "Không xác định kỳ";
+    }
+
+    private static string XepLoaiFromScore(double score)
+    {
+        if (score >= 90) return "Xuất sắc";
+        if (score >= 80) return "Tốt";
+        if (score >= 65) return "Khá";
+        if (score >= 50) return "Trung bình";
+        return "Cần cải thiện";
     }
 
 }

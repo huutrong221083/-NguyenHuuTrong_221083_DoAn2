@@ -94,6 +94,7 @@ public class QuanLyPhongBanController : Controller
             TongCongViec = tasks.Count,
             CongViecDangThucHien = tasks.Count(t => t.Matrangthai == 2),
             CongViecChoDuyet = tasks.Count(t => t.Matrangthai == 4),
+            CongViecHoanThanh = tasks.Count(t => t.Matrangthai == 3),
             NhanViens = phongBan.Nhanviens
                 .OrderBy(nv => nv.Hoten)
                 .Select(nv => new QuanLyPhongBanNhanVienItemViewModel
@@ -106,8 +107,23 @@ public class QuanLyPhongBanController : Controller
                 })
                 .ToList(),
             CongViecs = tasks
+                .Where(t => t.Matrangthai != 3)
                 .OrderBy(t => t.Hanhoanthanh ?? DateTime.MaxValue)
                 .ThenBy(t => t.Macongviec)
+                .Select(t => new QuanLyPhongBanCongViecItemViewModel
+                {
+                    MaCongViec = t.Macongviec,
+                    TenCongViec = t.Tencongviec,
+                    TenDuAn = t.MaduanNavigation?.Tenduan,
+                    Matrangthai = t.Matrangthai,
+                    TienDo = (int)Math.Round(t.Nhatkycongviecs.OrderByDescending(nk => nk.Ngaycapnhat).FirstOrDefault()?.Phantramhoanthanh ?? 0),
+                    HanHoanThanh = t.Hanhoanthanh
+                })
+                .ToList(),
+            CongViecHoanThanhList = tasks
+                .Where(t => t.Matrangthai == 3)
+                .OrderByDescending(t => t.Hanhoanthanh ?? DateTime.MinValue)
+                .ThenByDescending(t => t.Macongviec)
                 .Select(t => new QuanLyPhongBanCongViecItemViewModel
                 {
                     MaCongViec = t.Macongviec,

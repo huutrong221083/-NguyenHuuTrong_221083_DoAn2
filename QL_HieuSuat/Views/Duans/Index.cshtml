@@ -6,6 +6,11 @@
 
 <div class="container mt-4">
 
+    @{
+        var activeProjects = Model.Where(p => p.Trangthai != 3).ToList();
+        var completedProjects = Model.Where(p => p.Trangthai == 3).ToList();
+    }
+
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h2 class="fw-bold">📊 Danh sách dự án</h2>
 
@@ -14,10 +19,10 @@
         </a>
     </div>
 
-    <div class="card shadow">
+    <div class="card shadow mb-4">
 
         <div class="card-header bg-primary text-white fw-bold">
-            Quản lý dự án
+            Quản lý dự án đang triển khai
         </div>
 
         <div class="card-body">
@@ -37,7 +42,7 @@
 
                 <tbody>
 
-                    @foreach (var item in Model)
+                    @foreach (var item in activeProjects)
                     {
                         <tr>
 
@@ -103,12 +108,69 @@
                         </tr>
                     }
 
+                    @if (!activeProjects.Any())
+                    {
+                        <tr>
+                            <td colspan="6" class="text-center text-muted">Không có dự án đang triển khai.</td>
+                        </tr>
+                    }
+
                 </tbody>
 
             </table>
 
         </div>
 
+    </div>
+
+    <div class="card shadow">
+        <div class="card-header bg-success text-white fw-bold">
+            Dự án đã hoàn thành
+        </div>
+
+        <div class="card-body">
+
+            <table class="table table-hover table-bordered align-middle">
+
+                <thead class="table-dark text-center">
+                    <tr>
+                        <th>Tên dự án</th>
+                        <th>Mô tả</th>
+                        <th>Ngày bắt đầu</th>
+                        <th>Ngày kết thúc</th>
+                        <th>Trạng thái</th>
+                        <th width="200">Hành động</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    @foreach (var item in completedProjects)
+                    {
+                        <tr>
+                            <td class="fw-semibold">@item.Tenduan</td>
+                            <td>@item.Mota</td>
+                            <td class="text-center">@item.Ngaybatdau?.ToString("dd/MM/yyyy")</td>
+                            <td class="text-center">@item.Ngayketthuc?.ToString("dd/MM/yyyy")</td>
+                            <td class="text-center">
+                                <span class="badge bg-success">Hoàn thành</span>
+                            </td>
+                            <td class="text-center">
+                                <a asp-action="Details" asp-route-id="@item.Maduan" class="btn btn-info btn-sm">🔍 Xem</a>
+                            </td>
+                        </tr>
+                    }
+
+                    @if (!completedProjects.Any())
+                    {
+                        <tr>
+                            <td colspan="6" class="text-center text-muted">Chưa có dự án hoàn thành.</td>
+                        </tr>
+                    }
+                </tbody>
+
+            </table>
+
+        </div>
     </div>
 
 </div>

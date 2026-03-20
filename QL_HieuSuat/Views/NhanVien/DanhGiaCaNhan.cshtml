@@ -1,0 +1,183 @@
+@model QL_HieuSuat.Models.ViewModels.NhanVienDanhGiaCaNhanViewModel
+@using System.Text.Json
+
+@{
+    ViewData["Title"] = "Xem đánh giá cá nhân";
+    var labelsJson = JsonSerializer.Serialize(Model.BieuDoNhan);
+    var valuesJson = JsonSerializer.Serialize(Model.BieuDoDiem);
+}
+
+<div class="container-fluid">
+    <div class="mb-4 p-4 rounded-3 text-white" style="background: linear-gradient(135deg, #fd7e14 0%, #a4500f 100%);">
+        <h3 class="mb-1">Xem đánh giá cá nhân</h3>
+        <p class="mb-0 opacity-75">Lịch sử KPI, chi tiết theo kỳ và biểu đồ xu hướng điểm đánh giá.</p>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-lg-4 col-md-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="text-muted small">Kỳ đang xem</div>
+                    <div class="fw-semibold">@(Model.KyDangXem ?? "Chưa có dữ liệu")</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4 col-md-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="text-muted small">Điểm kỳ đang xem</div>
+                    <div class="fs-3 fw-bold">@(Model.DiemKyDangXem?.ToString("0.##") ?? "-")</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4 col-md-12">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="text-muted small">Xếp loại</div>
+                    <div class="fw-semibold">@Model.XepLoaiKyDangXem</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white">
+            <h5 class="mb-0">Biểu đồ xu hướng điểm KPI</h5>
+        </div>
+        <div class="card-body">
+            <canvas id="kpiTrendChart" height="120"></canvas>
+        </div>
+    </div>
+
+    <div class="row g-3">
+        <div class="col-lg-7">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Lịch sử đánh giá</h5>
+                    <span class="badge bg-secondary">@Model.LichSuDanhGia.Count kỳ</span>
+                </div>
+                <div class="card-body p-0">
+                    @if (Model.LichSuDanhGia.Any())
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0 align-middle">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Kỳ</th>
+                                        <th>Điểm tổng hợp</th>
+                                        <th>Xếp loại</th>
+                                        <th>Số danh mục</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var item in Model.LichSuDanhGia)
+                                    {
+                                        var kyLabel = item.Thang.HasValue && item.Nam.HasValue
+                                            ? $"Tháng {item.Thang.Value:D2}/{item.Nam.Value}"
+                                            : (item.Nam.HasValue ? $"Năm {item.Nam.Value}" : "Không xác định");
+
+                                        <tr>
+                                            <td>@kyLabel</td>
+                                            <td>@item.DiemTongHop.ToString("0.##")</td>
+                                            <td>@item.XepLoai</td>
+                                            <td>@item.SoDanhMuc</td>
+                                            <td class="text-end">
+                                                <a asp-action="DanhGiaCaNhan" asp-route-ky="@item.MaKy" class="btn btn-sm btn-outline-primary">Xem chi tiết</a>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="p-4 text-muted">Chưa có dữ liệu đánh giá KPI.</div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-5">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">Chi tiết kỳ đang xem</h5>
+                </div>
+                <div class="card-body p-0">
+                    @if (Model.ChiTietKyDangXem.Any())
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-sm mb-0 align-middle">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Danh mục</th>
+                                        <th>Điểm</th>
+                                        <th>Trọng số</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var detail in Model.ChiTietKyDangXem)
+                                    {
+                                        <tr>
+                                            <td>@(string.IsNullOrWhiteSpace(detail.TenDanhMuc) ? "-" : detail.TenDanhMuc)</td>
+                                            <td>@(detail.DiemSo?.ToString("0.##") ?? "-")</td>
+                                            <td>@(detail.TrongSo?.ToString("0.##") ?? "-")</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="p-4 text-muted">Không có chi tiết cho kỳ này.</div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+    <script>
+        (function () {
+            var labels = @Html.Raw(labelsJson);
+            var values = @Html.Raw(valuesJson);
+            var canvas = document.getElementById("kpiTrendChart");
+
+            if (!canvas || !Array.isArray(labels) || !Array.isArray(values) || labels.length === 0) {
+                return;
+            }
+
+            new Chart(canvas, {
+                type: "line",
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: "Điểm KPI tổng hợp",
+                        data: values,
+                        borderColor: "#fd7e14",
+                        backgroundColor: "rgba(253, 126, 20, 0.15)",
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.35,
+                        pointRadius: 4,
+                        pointHoverRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            suggestedMax: 100
+                        }
+                    }
+                }
+            });
+        })();
+    </script>
+}

@@ -1,13 +1,13 @@
 ﻿@model IEnumerable<QL_HieuSuat.Models.Phancongcongviec>
 
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "Danh sách phân công công việc";
 }
 
-<h1>Index</h1>
+<h1>Danh sách phân công công việc</h1>
 
 <p>
-    <a asp-action="Create">Create New</a>
+    <a asp-action="Create">Tạo mới</a>
 </p>
 <table class="table">
     <thead>
@@ -79,9 +79,9 @@
                 @Html.DisplayFor(modelItem => item.MaphongbanNavigation.Maphongban)
             </td>
             <td>
-                <a asp-action="Edit" asp-route-id="@item.Maphancong">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.Maphancong">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.Maphancong">Delete</a>
+                <a asp-action="Edit" asp-route-id="@item.Maphancong">Sửa</a> |
+                <a asp-action="Details" asp-route-id="@item.Maphancong">Chi tiết</a> |
+                <a asp-action="Delete" asp-route-id="@item.Maphancong">Xóa</a>
             </td>
         </tr>
 }

@@ -1,0 +1,117 @@
+@model QL_HieuSuat.Models.ViewModels.NhanVienDuAnDangThamGiaViewModel
+
+@{
+    ViewData["Title"] = "Dự án/công việc đang tham gia";
+
+    string GetStatusText(int status) => status switch
+    {
+        1 => "Chưa bắt đầu",
+        2 => "Đang thực hiện",
+        3 => "Hoàn thành",
+        4 => "Chờ duyệt",
+        5 => "Trễ",
+        6 => "Không duyệt",
+        7 => "Tạm dừng",
+        _ => "Không xác định"
+    };
+
+    string GetStatusBadge(int status) => status switch
+    {
+        1 => "bg-secondary",
+        2 => "bg-warning text-dark",
+        3 => "bg-success",
+        4 => "bg-info text-dark",
+        5 => "bg-danger",
+        6 => "bg-dark",
+        7 => "bg-secondary",
+        _ => "bg-dark"
+    };
+}
+
+<div class="container-fluid">
+    <div class="mb-4 p-4 rounded-3 text-white" style="background: linear-gradient(135deg, #0d6efd 0%, #0b3d91 100%);">
+        <h3 class="mb-1">Dự án/công việc đang tham gia</h3>
+        <p class="mb-0 opacity-75">@(string.IsNullOrWhiteSpace(Model.TenNhanVien) ? "Theo dõi tiến độ công việc hiện tại." : $"{Model.TenNhanVien} - theo dõi tiến độ công việc hiện tại.")</p>
+    </div>
+
+    @if (Model.DuAnDangThamGia.Any())
+    {
+        @foreach (var duAn in Model.DuAnDangThamGia)
+        {
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white d-flex flex-wrap justify-content-between gap-2 align-items-center">
+                    <div>
+                        <h5 class="mb-1">@(string.IsNullOrWhiteSpace(duAn.TenDuAn) ? "Chưa đặt tên dự án" : duAn.TenDuAn)</h5>
+                        <div class="text-muted small">
+                            Từ @(duAn.NgayBatDau?.ToString("dd/MM/yyyy") ?? "-") đến @(duAn.NgayKetThuc?.ToString("dd/MM/yyyy") ?? "-")
+                        </div>
+                    </div>
+                    <a asp-controller="Duans" asp-action="Details" asp-route-id="@duAn.MaDuAn" class="btn btn-sm btn-outline-primary">Chi tiết dự án</a>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3 mb-3">
+                        <div class="col-lg-2 col-md-4 col-6">
+                            <div class="small text-muted">Tổng việc</div>
+                            <div class="fw-bold fs-5">@duAn.TongCongViec</div>
+                        </div>
+                        <div class="col-lg-2 col-md-4 col-6">
+                            <div class="small text-muted">Đang thực hiện</div>
+                            <div class="fw-bold fs-5 text-warning">@duAn.DangThucHien</div>
+                        </div>
+                        <div class="col-lg-2 col-md-4 col-6">
+                            <div class="small text-muted">Chờ duyệt</div>
+                            <div class="fw-bold fs-5 text-info">@duAn.ChoDuyet</div>
+                        </div>
+                        <div class="col-lg-2 col-md-4 col-6">
+                            <div class="small text-muted">Hoàn thành</div>
+                            <div class="fw-bold fs-5 text-success">@duAn.HoanThanh</div>
+                        </div>
+                        <div class="col-lg-2 col-md-4 col-6">
+                            <div class="small text-muted">Quá hạn</div>
+                            <div class="fw-bold fs-5 text-danger">@duAn.QuaHan</div>
+                        </div>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Công việc</th>
+                                    <th>Trạng thái</th>
+                                    <th>Tiến độ</th>
+                                    <th>Hạn hoàn thành</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var cv in duAn.CongViecs)
+                                {
+                                    var percent = Math.Max(0, Math.Min(100, cv.TienDoPhanTram));
+                                    <tr>
+                                        <td class="fw-semibold">@cv.TenCongViec</td>
+                                        <td><span class="badge @GetStatusBadge(cv.Matrangthai)">@GetStatusText(cv.Matrangthai)</span></td>
+                                        <td style="min-width:160px;">
+                                            <div class="progress" style="height: 16px;">
+                                                <div class="progress-bar bg-success" style="width:@percent%">@Math.Round(percent)%</div>
+                                            </div>
+                                        </td>
+                                        <td>@(cv.HanHoanThanh?.ToString("dd/MM/yyyy") ?? "-")</td>
+                                        <td class="text-end">
+                                            <a asp-controller="Congviecs" asp-action="Details" asp-route-id="@cv.MaCongViec" class="btn btn-sm btn-outline-primary">Chi tiết</a>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        }
+    }
+    else
+    {
+        <div class="card border-0 shadow-sm">
+            <div class="card-body text-muted">Hiện chưa có dự án/công việc đang tham gia.</div>
+        </div>
+    }
+</div>

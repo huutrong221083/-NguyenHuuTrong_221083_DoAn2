@@ -138,6 +138,7 @@ Tự đánh giá hiện trạng:
         + SQL Server và Entity Framework Core cho quản lý dữ liệu.
         + ML.NET để xây dựng các mô hình dự báo.
         + Bootstrap và Chart.js để xây dựng giao diện và biểu đồ thống kê.
+ - Hệ thống đã được triển khai thực tế trên Cloud Server iNet (Windows Server 2022), publish từ môi trường phát triển và vận hành qua IIS.
  - Một số công nghệ như Docker hoặc kiến trúc microservice chưa được triển khai trong phạm vi đề tài.
 
 🧠 8. Mô hình sử dụng
@@ -193,6 +194,7 @@ Tạo nền tảng cho nghiên cứu mở rộng
 Tự đánh giá hiện trạng:
  - Hệ thống Web quản lý doanh nghiệp đã được xây dựng và có thể vận hành với các chức năng chính như quản lý nhân sự, dự án, công việc và KPI.
  - Hệ thống đã tích hợp các chức năng thống kê và dự báo cơ bản nhằm hỗ trợ quản lý theo dõi hoạt động của doanh nghiệp.
+ - Hệ thống đã được đưa vào môi trường chạy online, truy cập qua tên miền HTTPS và hoạt động ổn định trên hạ tầng Windows Server + IIS + SQL Server.
  - Một số chức năng nâng cao vẫn đang trong quá trình hoàn thiện và có thể tiếp tục phát triển thêm sau khi đề tài kết thúc.
 
 🚀 10. Hướng phát triển
@@ -203,7 +205,7 @@ Phát triển thành hệ thống ERP mini cho SME
 
 Tự đánh giá hiện trạng:
  - Một số hướng phát triển đã được thử nghiệm bước đầu, chẳng hạn như gợi ý nguồn lực dựa trên kỹ năng nhân viên.
- - Trong tương lai, hệ thống có thể được mở rộng thêm nhiều mô hình AI và cải thiện kiến trúc hệ thống để phù hợp hơn với triển khai thực tế.
+ - Trong tương lai, hệ thống có thể được mở rộng thêm nhiều mô hình AI, bổ sung giám sát vận hành và cải thiện kiến trúc để tối ưu khi triển khai thực tế.
 
 📌 11. Phạm vi đề tài
 Áp dụng cho doanh nghiệp vừa và nhỏ (SME)
@@ -227,3 +229,18 @@ Thiết kế cơ sở dữ liệu
 Phương pháp tích hợp AI vào quản lý doanh nghiệp
 ✨ Tổng kết
 Đề tài hướng đến việc ứng dụng Công nghệ Web và Trí tuệ nhân tạo để giải quyết bài toán quản lý doanh nghiệp trong thực tiễn, tạo nền tảng cho mô hình quản lý thông minh trong tương lai.
+
+✅ 13. Tổng kết kết quả dự án
+Hệ thống đã hoàn thành các kết quả chính sau:
+
+- Xây dựng thành công nền tảng Web quản lý hiệu suất doanh nghiệp theo mô hình ASP.NET Core MVC.
+- Triển khai đầy đủ các module nghiệp vụ cốt lõi: quản lý phòng ban, nhân viên, dự án, công việc, phân công và theo dõi tiến độ.
+- Tích hợp phân quyền người dùng theo vai trò (Admin, quản lý, nhân viên) và cơ chế xác thực tài khoản.
+- Hoàn thiện dashboard và thống kê giúp theo dõi KPI, tiến độ và hiệu quả hoạt động theo phòng ban/nhân viên.
+- Tích hợp AI bằng ML.NET để hỗ trợ dự báo rủi ro trễ hạn và phân loại hiệu suất nhân viên.
+- Thiết kế và vận hành cơ sở dữ liệu SQL Server đáp ứng dữ liệu nghiệp vụ thực tế.
+- Chuẩn hóa và bổ sung bộ script hỗ trợ khởi tạo dữ liệu mẫu, kiểm tra dữ liệu và xác minh quyền truy cập.
+- Hoàn thiện giao diện vận hành ổn định, phục vụ tốt mục tiêu học tập, nghiên cứu và triển khai thử nghiệm thực tế.
+
+🌐 14. Hệ thống chạy online
+https://qlhieusuat.huutrong.id.vn

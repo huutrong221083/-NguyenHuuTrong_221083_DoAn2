@@ -12,10 +12,20 @@
         </div>
     </div>
 
+    @if (TempData["UploadSuccess"] != null)
+    {
+        <div class="alert alert-success">@TempData["UploadSuccess"]</div>
+    }
+
+    @if (TempData["UploadError"] != null)
+    {
+        <div class="alert alert-danger">@TempData["UploadError"]</div>
+    }
+
     @if (Model == null || !Model.Any())
     {
         <div class="alert alert-info">
-            Hiện không có công việc nào đang ở trạng thái chờ duyệt trong phạm vi quản lý của bạn.
+            Hiện không có công việc nào ở trạng thái chờ duyệt hoặc trễ trong phạm vi quản lý của bạn.
         </div>
     }
     else
@@ -83,18 +93,14 @@
                                            class="btn btn-success btn-sm me-1">
                                             Duyệt
                                         </a>
-
-                                        <form asp-action="RequestComplete"
-                                              method="post"
-                                              class="d-inline">
-                                            <input type="hidden" name="id" value="@item.MaCongViec" />
-                                            <input type="hidden" name="status" value="false" />
-                                            <button type="submit"
-                                                    class="btn btn-outline-warning btn-sm"
-                                                    onclick="return confirm('Trả công việc về trạng thái đang thực hiện?');">
-                                                Trả lại
-                                            </button>
-                                        </form>
+                                        <button type="button"
+                                                class="btn btn-outline-danger btn-sm btn-reject-task"
+                                                data-task-id="@item.MaCongViec"
+                                                data-task-name="@item.TenCongViec"
+                                                data-bs-toggle="modal"
+                                                data-bs-target="#rejectTaskModal">
+                                            Không duyệt
+                                        </button>
                                     </td>
                                 </tr>
                             }
@@ -105,3 +111,51 @@
         </div>
     }
 </div>
+
+<div class="modal fade" id="rejectTaskModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form asp-action="Reject" method="post">
+                @Html.AntiForgeryToken()
+                <div class="modal-header">
+                    <h5 class="modal-title">Không duyệt công việc</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="rejectTaskId" name="id" />
+                    <p class="mb-2">Công việc: <strong id="rejectTaskName">-</strong></p>
+                    <label for="rejectReason" class="form-label">Lý do không duyệt</label>
+                    <textarea id="rejectReason"
+                              name="reason"
+                              class="form-control"
+                              rows="4"
+                              required
+                              placeholder="Nhập lý do để nhân viên chỉnh sửa công việc..."></textarea>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-danger">Xác nhận không duyệt</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            var rejectButtons = document.querySelectorAll(".btn-reject-task");
+            var taskIdInput = document.getElementById("rejectTaskId");
+            var taskNameLabel = document.getElementById("rejectTaskName");
+            var reasonInput = document.getElementById("rejectReason");
+
+            rejectButtons.forEach(function (button) {
+                button.addEventListener("click", function () {
+                    taskIdInput.value = button.getAttribute("data-task-id") || "";
+                    taskNameLabel.textContent = button.getAttribute("data-task-name") || "-";
+                    reasonInput.value = "";
+                });
+            });
+        });
+    </script>
+}

@@ -9,7 +9,9 @@
         2 => "Đang thực hiện",
         3 => "Hoàn thành",
         4 => "Chờ duyệt",
-        5 => "Trễ hạn",
+        5 => "Trễ",
+        6 => "Không duyệt",
+        7 => "Tạm dừng",
         _ => "Không xác định"
     };
 
@@ -20,14 +22,21 @@
         3 => "bg-success",
         4 => "bg-info text-dark",
         5 => "bg-danger",
+        6 => "bg-dark",
+        7 => "bg-secondary",
         _ => "bg-dark"
     };
 }
 
 <div class="container-fluid">
     <div class="mb-4 p-4 rounded-3 text-white" style="background: linear-gradient(135deg, #0d6efd 0%, #0b3d91 100%);">
-        <h3 class="mb-1">Xin chào @(string.IsNullOrWhiteSpace(Model.TenNhanVien) ? "Nhân viên" : Model.TenNhanVien)</h3>
-        <p class="mb-0 opacity-75">Theo dõi tiến độ công việc cá nhân và các đầu việc cần ưu tiên hôm nay.</p>
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+            <div>
+                <h3 class="mb-1">Xin chào @(string.IsNullOrWhiteSpace(Model.TenNhanVien) ? "Nhân viên" : Model.TenNhanVien)</h3>
+                <p class="mb-0 opacity-75">Theo dõi tiến độ công việc cá nhân và các đầu việc cần ưu tiên hôm nay.</p>
+            </div>
+            <a asp-action="ThongTinCaNhan" class="btn btn-light">Xem thông tin cá nhân</a>
+        </div>
     </div>
 
     <div class="row g-3 mb-4">
@@ -79,7 +88,9 @@
                         <option value="2" selected="@(Model.TrangThaiFilter == 2)">Đang thực hiện</option>
                         <option value="3" selected="@(Model.TrangThaiFilter == 3)">Hoàn thành</option>
                         <option value="4" selected="@(Model.TrangThaiFilter == 4)">Chờ duyệt</option>
-                        <option value="5" selected="@(Model.TrangThaiFilter == 5)">Trễ hạn</option>
+                        <option value="5" selected="@(Model.TrangThaiFilter == 5)">Trễ</option>
+                        <option value="6" selected="@(Model.TrangThaiFilter == 6)">Không duyệt</option>
+                        <option value="7" selected="@(Model.TrangThaiFilter == 7)">Tạm dừng</option>
                     </select>
                 </div>
 
@@ -167,14 +178,19 @@
         </div>
     </div>
 
-    <div class="card border-0 shadow-sm">
+    @{
+        var activeTasks = Model.CongViecGanNhat.Where(t => t.Matrangthai != 3).ToList();
+        var completedTasks = Model.CongViecGanNhat.Where(t => t.Matrangthai == 3).ToList();
+    }
+
+    <div class="card border-0 shadow-sm mb-4">
         <div class="card-header bg-white d-flex justify-content-between align-items-center">
-            <h5 class="mb-0">Công việc của tôi</h5>
-            <span class="badge bg-success">Hoàn thành: @Model.HoanThanh</span>
+            <h5 class="mb-0">Công việc đang xử lý</h5>
+            <span class="badge bg-warning text-dark">Đang thực hiện/chờ duyệt: @activeTasks.Count</span>
         </div>
 
         <div class="card-body p-0">
-            @if (Model.CongViecGanNhat.Any())
+            @if (activeTasks.Any())
             {
                 <div class="table-responsive">
                     <table class="table table-hover mb-0 align-middle">
@@ -190,7 +206,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach (var cv in Model.CongViecGanNhat)
+                            @foreach (var cv in activeTasks)
                             {
                                 var percent = Math.Max(0, Math.Min(100, cv.TienDoPhanTram));
                                 var isOverdue = cv.HanHoanThanh.HasValue && cv.HanHoanThanh.Value.Date < DateTime.Today && cv.Matrangthai != 3;
@@ -240,8 +256,91 @@
             }
             else
             {
-                <div class="p-4 text-muted">Bạn chưa có công việc nào được giao.</div>
+                <div class="p-4 text-muted">Không có công việc đang xử lý.</div>
+            }
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">Công việc đã hoàn thành</h5>
+            <span class="badge bg-success">Hoàn thành: @completedTasks.Count</span>
+        </div>
+
+        <div class="card-body p-0">
+            @if (completedTasks.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0 align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Công việc</th>
+                                <th>Dự án</th>
+                                <th>Trạng thái</th>
+                                <th>Tiến độ</th>
+                                <th>Hạn hoàn thành</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var cv in completedTasks)
+                            {
+                                var percent = Math.Max(0, Math.Min(100, cv.TienDoPhanTram));
+
+                                <tr>
+                                    <td class="fw-semibold">@cv.TenCongViec</td>
+                                    <td>@(string.IsNullOrWhiteSpace(cv.TenDuAn) ? "-" : cv.TenDuAn)</td>
+                                    <td>
+                                        <span class="badge @GetStatusBadge(cv.Matrangthai)">@GetStatusText(cv.Matrangthai)</span>
+                                    </td>
+                                    <td style="min-width: 180px;">
+                                        <div class="progress" style="height: 18px;">
+                                            <div class="progress-bar bg-success" style="width:@percent%">@Math.Round(percent)%</div>
+                                        </div>
+                                    </td>
+                                    <td>@(cv.HanHoanThanh?.ToString("dd/MM/yyyy") ?? "-")</td>
+                                    <td class="text-end">
+                                        <a asp-controller="Congviecs"
+                                           asp-action="Details"
+                                           asp-route-id="@cv.MaCongViec"
+                                           class="btn btn-sm btn-outline-primary">
+                                            Chi tiết
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="p-4 text-muted">Chưa có công việc hoàn thành trong bộ lọc hiện tại.</div>
             }
         </div>
     </div>
 </div>
+
+@section Scripts {
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.7/signalr.min.js"></script>
+    <script>
+        (function () {
+            if (!window.signalR) {
+                return;
+            }
+
+            var connection = new signalR.HubConnectionBuilder()
+                .withUrl("/hubs/task-progress")
+                .withAutomaticReconnect()
+                .build();
+
+            connection.on("ProgressChanged", function () {
+                location.reload();
+            });
+
+            connection.start().catch(function () {
+                // Ignore transient connection errors on dashboard.
+            });
+        })();
+    </script>
+}

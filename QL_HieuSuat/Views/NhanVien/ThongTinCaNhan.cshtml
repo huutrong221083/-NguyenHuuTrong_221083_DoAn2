@@ -1,0 +1,131 @@
+@model QL_HieuSuat.Models.Nhanvien
+
+@{
+    ViewData["Title"] = "Thông tin cá nhân";
+    var tenPhongBan = Model.MaphongbanNavigation?.Tenphongban ?? "Chưa cập nhật";
+    var ngaySinh = Model.Ngaysinh?.ToString("dd/MM/yyyy") ?? "Chưa cập nhật";
+    var ngayVaoLam = Model.Ngayvaolam?.ToString("dd/MM/yyyy") ?? "Chưa cập nhật";
+    var gioiTinh = string.IsNullOrWhiteSpace(Model.Gioitinh) ? "Chưa cập nhật" : Model.Gioitinh;
+    var cccd = string.IsNullOrWhiteSpace(Model.Cccd) ? "Chưa cập nhật" : Model.Cccd;
+    var sdt = string.IsNullOrWhiteSpace(Model.Sdt) ? "Chưa cập nhật" : Model.Sdt;
+    var diaChi = string.IsNullOrWhiteSpace(Model.Diachi) ? "Chưa cập nhật" : Model.Diachi;
+    var email = string.IsNullOrWhiteSpace(Model.Email) ? "Chưa cập nhật" : Model.Email;
+    var tenNhom = Model.Thanhviennhoms?
+        .Select(tv => tv.ManhomNavigation?.Tennhom)
+        .Where(x => !string.IsNullOrWhiteSpace(x))
+        .Distinct()
+        .ToList() ?? new List<string?>();
+    var kyNangs = Model.Kynangnhanviens?
+        .Where(kn => !string.IsNullOrWhiteSpace(kn.MakynangNavigation?.Tenkynang))
+        .OrderByDescending(kn => kn.Capdo ?? 0)
+        .ThenBy(kn => kn.MakynangNavigation!.Tenkynang)
+        .ToList() ?? new List<QL_HieuSuat.Models.Kynangnhanvien>();
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3 class="mb-0">Thông tin cá nhân</h3>
+        <a asp-action="Index" class="btn btn-outline-secondary">Quay lại trang nhân viên</a>
+    </div>
+
+    <div class="card shadow-sm border-0">
+        <div class="card-header bg-white">
+            <h5 class="mb-0">Hồ sơ nhân viên</h5>
+        </div>
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <div class="text-muted small">Mã nhân viên</div>
+                    <div class="fw-semibold">@Model.Manhanvien</div>
+                </div>
+                <div class="col-md-6">
+                    <div class="text-muted small">Họ tên</div>
+                    <div class="fw-semibold">@(string.IsNullOrWhiteSpace(Model.Hoten) ? "Chưa cập nhật" : Model.Hoten)</div>
+                </div>
+                <div class="col-md-6">
+                    <div class="text-muted small">Email</div>
+                    <div class="fw-semibold">@email</div>
+                </div>
+                <div class="col-md-6">
+                    <div class="text-muted small">Số điện thoại</div>
+                    <div class="fw-semibold">@sdt</div>
+                </div>
+                <div class="col-md-6">
+                    <div class="text-muted small">Giới tính</div>
+                    <div class="fw-semibold">@gioiTinh</div>
+                </div>
+                <div class="col-md-6">
+                    <div class="text-muted small">Ngày sinh</div>
+                    <div class="fw-semibold">@ngaySinh</div>
+                </div>
+                <div class="col-md-6">
+                    <div class="text-muted small">CCCD</div>
+                    <div class="fw-semibold">@cccd</div>
+                </div>
+                <div class="col-md-6">
+                    <div class="text-muted small">Ngày vào làm</div>
+                    <div class="fw-semibold">@ngayVaoLam</div>
+                </div>
+                <div class="col-md-6">
+                    <div class="text-muted small">Phòng ban</div>
+                    <div class="fw-semibold">@tenPhongBan</div>
+                </div>
+                <div class="col-md-6">
+                    <div class="text-muted small">Số năm kinh nghiệm</div>
+                    <div class="fw-semibold">@(Model.Sonamkinhnghiem?.ToString("0.##") ?? "Chưa cập nhật")</div>
+                </div>
+                <div class="col-12">
+                    <div class="text-muted small">Địa chỉ</div>
+                    <div class="fw-semibold">@diaChi</div>
+                </div>
+                <div class="col-12">
+                    <div class="text-muted small mb-1">Nhóm tham gia</div>
+                    @if (tenNhom.Any())
+                    {
+                        <div class="d-flex flex-wrap gap-2">
+                            @foreach (var nhom in tenNhom)
+                            {
+                                <span class="badge bg-secondary">@nhom</span>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-muted">Chưa tham gia nhóm nào.</div>
+                    }
+                </div>
+                <div class="col-12">
+                    <div class="text-muted small mb-1">Kỹ năng</div>
+                    @if (kyNangs.Any())
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-sm table-bordered align-middle mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Tên kỹ năng</th>
+                                        <th width="120">Cấp độ</th>
+                                        <th width="220">Số dự án đã dùng</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var kyNang in kyNangs)
+                                    {
+                                        <tr>
+                                            <td>@kyNang.MakynangNavigation?.Tenkynang</td>
+                                            <td>@(kyNang.Capdo?.ToString() ?? "-")</td>
+                                            <td>@(kyNang.Soduandadungkynangnay?.ToString() ?? "0")</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-muted">Chưa cập nhật kỹ năng.</div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

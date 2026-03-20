@@ -316,8 +316,157 @@ namespace QL_HieuSuat.Controllers
             }
 
 
+            // =====================
+            // Hiệu suất hoạt động (thực tế + so sánh AI)
+            // =====================
+
+            var now = DateTime.Now;
+
+            var duAnRawList = _context.Duans
+                .Include(d => d.Congviecs)
+                    .ThenInclude(c => c.Phancongcongviecs)
+                .AsSplitQuery()
+                .ToList();
+
+            var duAnById = duAnRawList.ToDictionary(d => d.Maduan, d => d);
+
+            var duAnThucTe = duAnRawList
+                .Select(d =>
+                {
+                    var tasks = d.Congviecs.ToList();
+                    var tongCongViec = tasks.Count;
+                    var hoanThanh = tasks.Count(t => t.Matrangthai == 3);
+                    var dangMo = tasks.Count(t => t.Matrangthai != 3);
+                    var treHan = tasks.Count(t => t.Matrangthai != 3 && t.Hanhoanthanh.HasValue && t.Hanhoanthanh.Value.Date < now.Date);
+
+                    var ngayHoanThanhThucTe = tasks
+                        .SelectMany(t => t.Phancongcongviecs)
+                        .Where(p => p.Ngayketthucthucte.HasValue)
+                        .Select(p => p.Ngayketthucthucte!.Value.Date)
+                        .DefaultIfEmpty()
+                        .Max();
+
+                    var hoanTatDuAn = tongCongViec > 0 && hoanThanh == tongCongViec;
+                    var tyLeHoanThanh = tongCongViec == 0 ? 0 : Math.Round((double)hoanThanh * 100 / tongCongViec, 2);
+
+                    var thucTeTreHan = d.Ngayketthuc.HasValue && (
+                        (hoanTatDuAn && ngayHoanThanhThucTe != default && ngayHoanThanhThucTe > d.Ngayketthuc.Value.Date) ||
+                        (!hoanTatDuAn && now.Date > d.Ngayketthuc.Value.Date));
+
+                    return new
+                    {
+                        d.Maduan,
+                        TenDuAn = string.IsNullOrWhiteSpace(d.Tenduan) ? $"Du an #{d.Maduan}" : d.Tenduan,
+                        TongCongViec = tongCongViec,
+                        HoanThanh = hoanThanh,
+                        DangMo = dangMo,
+                        TreHan = treHan,
+                        TyLeHoanThanh = tyLeHoanThanh,
+                        HanDuAn = d.Ngayketthuc,
+                        NgayHoanThanhThucTe = ngayHoanThanhThucTe == default ? (DateTime?)null : ngayHoanThanhThucTe,
+                        HoanTatDuAn = hoanTatDuAn,
+                        ThucTeTreHan = thucTeTreHan
+                    };
+                })
+                .OrderByDescending(x => x.HoanTatDuAn)
+                .ThenByDescending(x => x.TyLeHoanThanh)
+                .ThenBy(x => x.TenDuAn)
+                .ToList();
+
+            ViewBag.HoatDongDuAnThucTe = duAnThucTe;
+
+            var duDoanDuAnGanNhat = _context.Dudoanais
+                .AsNoTracking()
+                .Where(x => x.Madoituong.HasValue && x.Xacsuattrehan.HasValue && x.Dexuatcaithien != null && x.Dexuatcaithien.StartsWith("AIv2-TASK|"))
+                .ToList()
+                .GroupBy(x => x.Madoituong!.Value)
+                .ToDictionary(
+                    g => g.Key,
+                    g => g.OrderByDescending(x => x.Nam ?? 0)
+                          .ThenByDescending(x => x.Thang ?? 0)
+                          .ThenByDescending(x => x.Thoigiandudoan ?? DateTime.MinValue)
+                          .First());
+
+            var soSanhDuAn = duAnThucTe
+                .Where(x => x.NgayHoanThanhThucTe.HasValue)
+                .Where(x => duDoanDuAnGanNhat.ContainsKey(x.Maduan))
+                .Select(x =>
+                {
+                    var pred = duDoanDuAnGanNhat[x.Maduan];
+                    var predRisk = Math.Clamp(pred.Xacsuattrehan ?? 0, 0, 1);
+                    var duAn = duAnById[x.Maduan];
+                    var ngayDuDoanAI = EstimateAiProjectCompletionDate(duAn, predRisk);
+
+                    var thucTe = x.NgayHoanThanhThucTe;
+                    var ketQua = (thucTe.HasValue && ngayDuDoanAI.HasValue && thucTe.Value.Date == ngayDuDoanAI.Value.Date)
+                        ? "Khớp"
+                        : "Chênh lệch";
+
+                    return new
+                    {
+                        x.Maduan,
+                        x.TenDuAn,
+                        NgayHoanThanhThucTe = thucTe,
+                        NgayDuDoanAI = ngayDuDoanAI,
+                        KetQua = ketQua
+                    };
+                })
+                .OrderBy(x => x.NgayDuDoanAI ?? DateTime.MaxValue)
+                .ThenBy(x => x.TenDuAn)
+                .ToList();
+
+            ViewBag.HoatDongSoSanhDuAn = soSanhDuAn;
+
+            var tongSoSanhDuAn = soSanhDuAn.Count;
+            var khopDuAn = soSanhDuAn.Count(x => string.Equals((string?)x.KetQua, "Khớp", StringComparison.OrdinalIgnoreCase));
+            var tyLeKhopDuAn = tongSoSanhDuAn == 0 ? 0 : Math.Round((double)khopDuAn * 100 / tongSoSanhDuAn, 2);
+
+            ViewBag.HoatDongTongSoSanhDuAn = tongSoSanhDuAn;
+            ViewBag.HoatDongKhopDuAn = khopDuAn;
+            ViewBag.HoatDongTyLeKhopDuAn = tyLeKhopDuAn;
 
             return View();
+        }
+
+        private static DateTime? EstimateAiProjectCompletionDate(Duan duAn, double riskProbability)
+        {
+            var tasks = duAn.Congviecs?.ToList() ?? new List<Congviec>();
+            if (tasks.Count == 0)
+            {
+                return duAn.Ngayketthuc?.Date;
+            }
+
+            var now = DateTime.Now.Date;
+            var total = tasks.Count;
+            var completed = tasks.Count(t => t.Matrangthai == 3);
+            var remaining = Math.Max(0, total - completed);
+
+            if (remaining == 0)
+            {
+                var completedDate = tasks
+                    .SelectMany(t => t.Phancongcongviecs)
+                    .Where(p => p.Ngayketthucthucte.HasValue)
+                    .Select(p => p.Ngayketthucthucte!.Value.Date)
+                    .DefaultIfEmpty()
+                    .Max();
+
+                return completedDate == default ? now : completedDate;
+            }
+
+            var startDate = duAn.Ngaybatdau?.Date ?? now.AddDays(-30);
+            var elapsedDays = Math.Max(1, (now - startDate).TotalDays);
+            var velocityPerDay = completed / elapsedDays;
+            var avgDifficulty = tasks.Average(t => t.Dokho ?? 0);
+
+            var baseRemainingDays = velocityPerDay <= 0.01
+                ? remaining * (2.2 + avgDifficulty * 0.45)
+                : remaining / velocityPerDay;
+
+            var riskFactor = 1 + Math.Clamp(riskProbability, 0, 1) * 0.9;
+            var difficultyFactor = 1 + Math.Clamp(avgDifficulty, 0, 10) * 0.04;
+            var predictedDays = Math.Max(1, (int)Math.Ceiling(baseRemainingDays * riskFactor * difficultyFactor));
+
+            return now.AddDays(predictedDays);
         }
 
         // Xuat bao cao (Excel/PDF)

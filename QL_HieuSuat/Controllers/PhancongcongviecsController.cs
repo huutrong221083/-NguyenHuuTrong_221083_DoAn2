@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Security.Claims;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
@@ -10,7 +11,7 @@ using QL_HieuSuat.Models;
 
 namespace QL_HieuSuat.Controllers
 {
-    [Authorize(Roles = "Admin,TruongPhong,TruongNhom")]
+    [Authorize(Roles = "Admin,TruongPhong,TruongNhom,QuanLyPhongBan")]
     public class PhancongcongviecsController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -104,6 +105,20 @@ namespace QL_HieuSuat.Controllers
             }
             var phongbans = phongbanQuery.OrderBy(pb => pb.Tenphongban).ToList();
             ViewBag.Phongbans = phongbans;
+
+            if (scope.IsAdmin)
+            {
+                ViewBag.DepartmentScopeMessage = "Bạn đang phân công trong phạm vi phòng: Toàn hệ thống.";
+            }
+            else if (phongbans.Any())
+            {
+                var tenPhongBans = string.Join(", ", phongbans.Select(p => p.Tenphongban).Where(x => !string.IsNullOrWhiteSpace(x)));
+                ViewBag.DepartmentScopeMessage = $"Bạn đang phân công trong phạm vi phòng: {tenPhongBans}.";
+            }
+            else
+            {
+                ViewBag.DepartmentScopeMessage = "Bạn đang phân công trong phạm vi phòng: Chưa xác định.";
+            }
 
             ViewBag.CanAssignNhanVien = nhanviens.Any();
             ViewBag.CanAssignNhom = nhoms.Any();
@@ -419,15 +434,43 @@ namespace QL_HieuSuat.Controllers
         private async Task<int?> GetCurrentNhanVienIdAsync()
         {
             var currentUserName = User.Identity?.Name;
+            var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            if (!string.IsNullOrWhiteSpace(userIdClaim))
+            {
+                var idFromClaim = await _context.Users
+                    .Where(u => u.Id == userIdClaim)
+                    .Select(u => u.MaNhanVien)
+                    .FirstOrDefaultAsync();
+
+                if (idFromClaim.HasValue)
+                {
+                    return idFromClaim.Value;
+                }
+            }
+
             if (string.IsNullOrWhiteSpace(currentUserName))
             {
                 return null;
             }
 
-            return await _context.Users
+            var idFromIdentity = await _context.Users
                 .Where(u => u.UserName == currentUserName || u.Email == currentUserName)
                 .Select(u => u.MaNhanVien)
                 .FirstOrDefaultAsync();
+
+            if (idFromIdentity.HasValue)
+            {
+                return idFromIdentity.Value;
+            }
+
+            // Fallback: mot so tai khoan demo co the chua map MaNhanVien trong AspNetUsers.
+            var idFromNhanVienEmail = await _context.Nhanviens
+                .Where(nv => !string.IsNullOrWhiteSpace(nv.Email) && nv.Email == currentUserName)
+                .Select(nv => (int?)nv.Manhanvien)
+                .FirstOrDefaultAsync();
+
+            return idFromNhanVienEmail;
         }
 
         private async Task<(bool IsAdmin, List<int> EmployeeIds, List<int> GroupIds, List<int> DepartmentIds)> GetAssignmentScopeAsync()
@@ -455,13 +498,34 @@ namespace QL_HieuSuat.Controllers
                     .ToListAsync();
             }
 
-            if (User.IsInRole("TruongPhong"))
+            if (User.IsInRole("QuanLyPhongBan"))
+            {
+                departmentIds = await _context.Phongbans
+                    .Select(pb => pb.Maphongban)
+                    .Distinct()
+                    .ToListAsync();
+            }
+            else if (User.IsInRole("TruongPhong"))
             {
                 departmentIds = await _context.Phongbans
                     .Where(pb => pb.Matruongphong == currentNhanVienId.Value)
                     .Select(pb => pb.Maphongban)
                     .Distinct()
                     .ToListAsync();
+
+                // Fallback cho du lieu chua set MATRUONGPHONG: cho phep trong phong ban hien tai cua truong phong.
+                if (!departmentIds.Any())
+                {
+                    var ownDepartmentId = await _context.Nhanviens
+                        .Where(nv => nv.Manhanvien == currentNhanVienId.Value)
+                        .Select(nv => nv.Maphongban)
+                        .FirstOrDefaultAsync();
+
+                    if (ownDepartmentId.HasValue)
+                    {
+                        departmentIds.Add(ownDepartmentId.Value);
+                    }
+                }
             }
 
             var employeeIdsInGroups = groupIds.Count == 0
@@ -480,8 +544,18 @@ namespace QL_HieuSuat.Controllers
                     .Distinct()
                     .ToListAsync();
 
+            // Luon bao gom truong phong cua cac phong ban nam trong pham vi quan ly
+            var departmentHeadIds = departmentIds.Count == 0
+                ? new List<int>()
+                : await _context.Phongbans
+                    .Where(pb => departmentIds.Contains(pb.Maphongban) && pb.Matruongphong.HasValue)
+                    .Select(pb => pb.Matruongphong!.Value)
+                    .Distinct()
+                    .ToListAsync();
+
             var employeeIds = employeeIdsInGroups
                 .Concat(employeeIdsInDepartments)
+                .Concat(departmentHeadIds)
                 .Distinct()
                 .ToList();
 

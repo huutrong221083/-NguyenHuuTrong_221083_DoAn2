@@ -243,32 +243,44 @@ body.app-body {
   min-height: 32px;
 }
 
-.btn-primary {
+.btn-primary,
+.btn-add-group {
   background-color: var(--primary);
   border-color: var(--primary);
+  color: #ffffff;
+  box-shadow: 0 6px 16px rgba(10, 102, 194, 0.24);
 }
 
 .btn-primary:hover,
-.btn-primary:focus {
+.btn-primary:focus,
+.btn-add-group:hover,
+.btn-add-group:focus {
   background-color: var(--primary-hover);
   border-color: var(--primary-hover);
+  color: #ffffff;
+  transform: translateY(-1px);
 }
 
 .btn-success {
   background-color: var(--success);
   border-color: var(--success);
+  color: #ffffff;
+  box-shadow: 0 6px 16px rgba(31, 157, 100, 0.24);
 }
 
 .btn-success:hover,
 .btn-success:focus {
   background-color: var(--success-hover);
   border-color: var(--success-hover);
+  color: #ffffff;
+  transform: translateY(-1px);
 }
 
 .btn-warning {
   background-color: var(--warning);
   border-color: var(--warning);
   color: #1f2b3b;
+  box-shadow: 0 6px 16px rgba(221, 157, 35, 0.26);
 }
 
 .btn-warning:hover,
@@ -276,17 +288,174 @@ body.app-body {
   background-color: var(--warning-hover);
   border-color: var(--warning-hover);
   color: #1f2b3b;
+  transform: translateY(-1px);
 }
 
 .btn-danger {
   background-color: var(--danger);
   border-color: var(--danger);
+  color: #ffffff;
+  box-shadow: 0 6px 16px rgba(209, 63, 83, 0.26);
 }
 
 .btn-danger:hover,
 .btn-danger:focus {
   background-color: var(--danger-hover);
   border-color: var(--danger-hover);
+  color: #ffffff;
+  transform: translateY(-1px);
+}
+
+.btn-secondary {
+  background-color: #5f6f84;
+  border-color: #5f6f84;
+  color: #ffffff;
+  box-shadow: 0 6px 16px rgba(95, 111, 132, 0.24);
+}
+
+.btn-secondary:hover,
+.btn-secondary:focus {
+  background-color: #4f5e73;
+  border-color: #4f5e73;
+  color: #ffffff;
+  transform: translateY(-1px);
+}
+
+.btn-info {
+  background-color: #1b9bb7;
+  border-color: #1b9bb7;
+  color: #ffffff;
+  box-shadow: 0 6px 16px rgba(27, 155, 183, 0.24);
+}
+
+.btn-info:hover,
+.btn-info:focus {
+  background-color: #157d94;
+  border-color: #157d94;
+  color: #ffffff;
+  transform: translateY(-1px);
+}
+
+.btn-light {
+  background-color: #f3f6fb;
+  border-color: #d7e0ee;
+  color: #2a3b51;
+  box-shadow: none;
+}
+
+.btn-light:hover,
+.btn-light:focus {
+  background-color: #e7edf7;
+  border-color: #cad7ea;
+  color: #1f2f44;
+  transform: translateY(-1px);
+}
+
+.btn-outline-primary,
+.btn-outline-success,
+.btn-outline-warning,
+.btn-outline-danger,
+.btn-outline-info,
+.btn-outline-secondary {
+  background-color: transparent;
+}
+
+.btn-outline-primary {
+  color: var(--primary);
+  border-color: var(--primary);
+}
+
+.btn-outline-primary:hover,
+.btn-outline-primary:focus {
+  background-color: var(--primary);
+  border-color: var(--primary);
+  color: #ffffff;
+}
+
+.btn-outline-success {
+  color: var(--success);
+  border-color: var(--success);
+}
+
+.btn-outline-success:hover,
+.btn-outline-success:focus {
+  background-color: var(--success);
+  border-color: var(--success);
+  color: #ffffff;
+}
+
+.btn-outline-warning {
+  color: #a87110;
+  border-color: #c8921b;
+}
+
+.btn-outline-warning:hover,
+.btn-outline-warning:focus {
+  background-color: var(--warning);
+  border-color: var(--warning);
+  color: #1f2b3b;
+}
+
+.btn-outline-danger {
+  color: var(--danger);
+  border-color: var(--danger);
+}
+
+.btn-outline-danger:hover,
+.btn-outline-danger:focus {
+  background-color: var(--danger);
+  border-color: var(--danger);
+  color: #ffffff;
+}
+
+.btn-outline-info {
+  color: #1b9bb7;
+  border-color: #1b9bb7;
+}
+
+.btn-outline-info:hover,
+.btn-outline-info:focus {
+  background-color: #1b9bb7;
+  border-color: #1b9bb7;
+  color: #ffffff;
+}
+
+.btn-outline-secondary {
+  color: #5f6f84;
+  border-color: #5f6f84;
+}
+
+.btn-outline-secondary:hover,
+.btn-outline-secondary:focus {
+  background-color: #5f6f84;
+  border-color: #5f6f84;
+  color: #ffffff;
+}
+
+.btn-add-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  border-radius: 999px;
+  padding: 0.42rem 0.9rem;
+  font-weight: 700;
+  font-size: 0.92rem;
+  line-height: 1;
+  text-decoration: none;
+}
+
+.btn-add-group-icon {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.22);
+  color: #ffffff;
+  font-weight: 800;
+  font-size: 1rem;
+  line-height: 1;
 }
 
 .form-control,
@@ -375,6 +544,11 @@ body.app-body {
 
   .app-topbar-meta {
     display: none;
+  }
+
+  .btn-add-group {
+    padding: 0.4rem 0.8rem;
+    font-size: 0.88rem;
   }
 }
 

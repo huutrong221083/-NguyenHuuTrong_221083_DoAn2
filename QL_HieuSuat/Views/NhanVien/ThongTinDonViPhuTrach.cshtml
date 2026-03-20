@@ -1,0 +1,169 @@
+@model QL_HieuSuat.Models.ViewModels.NhanVienThongTinDonViQuanLyViewModel
+
+@{
+    ViewData["Title"] = "Thông tin đơn vị đang phụ trách";
+
+    var phongBanItems = Model.DonViPhuTrach
+        .Where(x => string.Equals(x.LoaiDonVi, "Phòng ban", StringComparison.OrdinalIgnoreCase))
+        .OrderBy(x => x.TenDonVi)
+        .ToList();
+
+    var nhomItems = Model.DonViPhuTrach
+        .Where(x => string.Equals(x.LoaiDonVi, "Nhóm", StringComparison.OrdinalIgnoreCase))
+        .OrderBy(x => x.TenDonVi)
+        .ToList();
+}
+
+<div class="container-fluid">
+    <div class="mb-4 p-4 rounded-3 text-white" style="background: linear-gradient(135deg, #0d6efd 0%, #0b3d91 100%);">
+        <h3 class="mb-1">Thông tin đơn vị đang phụ trách</h3>
+        <p class="mb-0 opacity-75">Tách riêng phạm vi quản lý theo Phòng và theo Nhóm.</p>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-lg-6 col-md-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="text-muted small">Người quản lý</div>
+                    <div class="fw-semibold">@(string.IsNullOrWhiteSpace(Model.TenQuanLy) ? "Chưa xác định" : Model.TenQuanLy)</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6 col-md-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="text-muted small">Tổng nhân viên trong phạm vi quản lý</div>
+                    <div class="fs-3 fw-bold">@Model.TongNhanVienQuanLy</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-3">
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Phòng đang phụ trách</h5>
+                    <span class="badge bg-primary">@phongBanItems.Count phòng</span>
+                </div>
+                <div class="card-body">
+                    @if (phongBanItems.Any())
+                    {
+                        @foreach (var item in phongBanItems)
+                        {
+                            <div class="border rounded-3 p-3 mb-3">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <div>
+                                        <div class="fw-semibold">@item.TenDonVi (Mã phòng: @item.MaDonVi)</div>
+                                        <div class="text-muted small">Số nhân viên: @item.SoNhanVien</div>
+                                    </div>
+                                </div>
+
+                                @if (item.ThanhVien.Any())
+                                {
+                                    <div class="table-responsive">
+                                        <table class="table table-sm table-striped align-middle mb-0">
+                                            <thead class="table-light">
+                                                <tr>
+                                                    <th>Mã NV</th>
+                                                    <th>Họ tên</th>
+                                                    <th>Vai trò</th>
+                                                    <th>Email</th>
+                                                    <th>SĐT</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @foreach (var member in item.ThanhVien)
+                                                {
+                                                    <tr>
+                                                        <td>@member.MaNhanVien</td>
+                                                        <td>@member.HoTen</td>
+                                                        <td>@(string.IsNullOrWhiteSpace(member.VaiTroTrongDonVi) ? "-" : member.VaiTroTrongDonVi)</td>
+                                                        <td>@(string.IsNullOrWhiteSpace(member.Email) ? "-" : member.Email)</td>
+                                                        <td>@(string.IsNullOrWhiteSpace(member.SoDienThoai) ? "-" : member.SoDienThoai)</td>
+                                                    </tr>
+                                                }
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div class="text-muted small">Chưa có nhân viên trong phòng này.</div>
+                                }
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <div class="p-4 text-muted">Hiện chưa có phòng thuộc phạm vi phụ trách.</div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Nhóm đang phụ trách</h5>
+                    <span class="badge bg-success">@nhomItems.Count nhóm</span>
+                </div>
+                <div class="card-body">
+                    @if (nhomItems.Any())
+                    {
+                        @foreach (var item in nhomItems)
+                        {
+                            <div class="border rounded-3 p-3 mb-3">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <div>
+                                        <div class="fw-semibold">@item.TenDonVi (Mã nhóm: @item.MaDonVi)</div>
+                                        <div class="text-muted small">Số thành viên: @item.SoNhanVien</div>
+                                    </div>
+                                </div>
+
+                                @if (item.ThanhVien.Any())
+                                {
+                                    <div class="table-responsive">
+                                        <table class="table table-sm table-striped align-middle mb-0">
+                                            <thead class="table-light">
+                                                <tr>
+                                                    <th>Mã NV</th>
+                                                    <th>Họ tên</th>
+                                                    <th>Vai trò trong nhóm</th>
+                                                    <th>Phòng ban</th>
+                                                    <th>Email</th>
+                                                    <th>SĐT</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @foreach (var member in item.ThanhVien)
+                                                {
+                                                    <tr>
+                                                        <td>@member.MaNhanVien</td>
+                                                        <td>@member.HoTen</td>
+                                                        <td>@(string.IsNullOrWhiteSpace(member.VaiTroTrongDonVi) ? "-" : member.VaiTroTrongDonVi)</td>
+                                                        <td>@(string.IsNullOrWhiteSpace(member.TenPhongBan) ? "-" : member.TenPhongBan)</td>
+                                                        <td>@(string.IsNullOrWhiteSpace(member.Email) ? "-" : member.Email)</td>
+                                                        <td>@(string.IsNullOrWhiteSpace(member.SoDienThoai) ? "-" : member.SoDienThoai)</td>
+                                                    </tr>
+                                                }
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div class="text-muted small">Chưa có thành viên trong nhóm này.</div>
+                                }
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <div class="p-4 text-muted">Hiện chưa có nhóm thuộc phạm vi phụ trách.</div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

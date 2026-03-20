@@ -4,6 +4,7 @@ using Microsoft.OpenApi.Models;
 using QuestPDF.Infrastructure;
 using QL_HieuSuat.Hubs;
 using QL_HieuSuat.Models;
+using QL_HieuSuat.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -16,6 +17,7 @@ builder.Services.AddDbContext<QlHieuSuatContext>(options =>
 
 builder.Services.AddControllersWithViews();
 builder.Services.AddSignalR();
+builder.Services.AddMemoryCache();
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
@@ -30,10 +32,13 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
 .AddEntityFrameworkStores<ApplicationDbContext>()
 .AddDefaultTokenProviders();
 
+builder.Services.Configure<SmtpSettings>(builder.Configuration.GetSection("EmailSettings"));
+builder.Services.AddScoped<IEmailService, SmtpEmailService>();
+
 builder.Services.ConfigureApplicationCookie(options =>
 {
     options.LoginPath = "/Account/Login";
-    options.AccessDeniedPath = "/Account/Login";
+    options.AccessDeniedPath = "/Account/AccessDenied";
 });
 //builder.Services.ConfigureApplicationCookie(options =>
 //{
@@ -95,8 +100,7 @@ using (var scope = app.Services.CreateScope())
         "TruongPhong",
         "QuanLyPhongBan",
         "TruongNhom",
-        "QuanLyNhanSu",
-        "QuanLyDuAn"
+        "QuanLyNhanSu"
     };
 
     foreach (var role in roles)

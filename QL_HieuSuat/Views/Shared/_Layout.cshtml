@@ -1,6 +1,8 @@
 ﻿@using Microsoft.AspNetCore.Identity
+@using Microsoft.EntityFrameworkCore
 @inject SignInManager<ApplicationUser> SignInManager
 @inject UserManager<ApplicationUser> UserManager
+@inject ApplicationDbContext DbContext
 
 <!DOCTYPE html>
 <html lang="vi">
@@ -22,9 +24,97 @@
     @if (SignInManager.IsSignedIn(User))
     {
         var isAdmin = User.IsInRole("Admin");
+        var currentUser = await UserManager.GetUserAsync(User);
         var currentController = (ViewContext.RouteData.Values["controller"]?.ToString() ?? string.Empty).Trim();
         var currentAction = (ViewContext.RouteData.Values["action"]?.ToString() ?? string.Empty).Trim();
         var pageTitle = (ViewData["Title"]?.ToString() ?? currentController).Trim();
+
+        var displayName = currentUser?.Nhanvien?.Hoten;
+        if (string.IsNullOrWhiteSpace(displayName) && currentUser?.MaNhanVien is int maNhanVien)
+        {
+            displayName = await DbContext.Nhanviens
+                .AsNoTracking()
+                .Where(nv => nv.Manhanvien == maNhanVien)
+                .Select(nv => nv.Hoten)
+                .FirstOrDefaultAsync();
+        }
+
+        displayName = string.IsNullOrWhiteSpace(displayName)
+            ? (User.Identity?.Name ?? "Người dùng")
+            : displayName;
+
+        var roles = currentUser is null
+            ? new List<string>()
+            : (await UserManager.GetRolesAsync(currentUser)).ToList();
+
+        var roleDisplayMap = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+        {
+            ["Admin"] = "Quản trị viên",
+            ["QuanLyNhanSu"] = "Quản lý nhân sự",
+            ["QuanLyPhongBan"] = "Quản lý phòng ban",
+            ["TruongPhong"] = "Trưởng phòng",
+            ["TruongNhom"] = "Trưởng nhóm",
+            ["NhanVien"] = "Nhân viên"
+        };
+
+        var rolePriority = new[]
+        {
+            "Admin",
+            "QuanLyNhanSu",
+            "QuanLyPhongBan",
+            "TruongPhong",
+            "TruongNhom",
+            "NhanVien"
+        };
+
+        var roleToShow = rolePriority.FirstOrDefault(priorityRole => roles.Contains(priorityRole))
+            ?? roles.FirstOrDefault();
+        var displayRole = !string.IsNullOrWhiteSpace(roleToShow)
+            ? (roleDisplayMap.TryGetValue(roleToShow, out var mappedRole) ? mappedRole : roleToShow)
+            : "Người dùng";
+
+        var controllerDisplayNames = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+        {
+            ["Admin"] = "Quản trị",
+            ["Account"] = "Tài khoản",
+            ["Home"] = "Trang chủ",
+            ["Nhanviens"] = "Nhân viên",
+            ["NhanVien"] = "Nhân viên",
+            ["Phongbans"] = "Phòng ban",
+            ["Duans"] = "Dự án",
+            ["Nhoms"] = "Nhóm",
+            ["Congviecs"] = "Công việc",
+            ["ThongKe"] = "Thống kê",
+            ["Dudoanais"] = "Dự báo AI",
+            ["Phancongcongviecs"] = "Phân công công việc",
+            ["QuanLyNhanSu"] = "Quản lý nhân sự",
+            ["QuanLyPhongBan"] = "Quản lý phòng ban"
+        };
+
+        var actionDisplayNames = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+        {
+            ["Index"] = "Danh sách",
+            ["Create"] = "Thêm mới",
+            ["Edit"] = "Chỉnh sửa",
+            ["Delete"] = "Xóa",
+            ["Details"] = "Chi tiết",
+            ["Login"] = "Đăng nhập",
+            ["Logout"] = "Đăng xuất",
+            ["ThongTinVaXepLoai"] = "Thông tin cá nhân và xếp loại",
+            ["DuAnCongViecDangThamGia"] = "Dự án/công việc đang tham gia",
+            ["DuAnDaThamGia"] = "Dự án đã tham gia",
+            ["DanhGiaCaNhan"] = "Xem đánh giá cá nhân",
+            ["ThongTinDonViPhuTrach"] = "Thông tin nhóm/phòng phụ trách",
+            ["DanhGiaDonViQuanLy"] = "Đánh giá nhóm/phòng quản lý",
+            ["YeuCauChinhSuaThongTin"] = "Yêu cầu chỉnh sửa thông tin"
+        };
+
+        var controllerDisplayName = controllerDisplayNames.TryGetValue(currentController, out var ctlName)
+            ? ctlName
+            : currentController;
+        var actionDisplayName = actionDisplayNames.TryGetValue(currentAction, out var actName)
+            ? actName
+            : currentAction;
 
         <div class="app-shell d-flex">
 
@@ -36,7 +126,7 @@
                     <div class="app-brand-logo">QL</div>
                     <div>
                         <div class="app-brand-title">Hệ thống hiệu suất</div>
-                        <div class="app-brand-subtitle">Workforce Analytics</div>
+                        
                     </div>
                 </div>
 
@@ -117,17 +207,23 @@
                         @if (isHrManager)
                         {
                             <li class="nav-item">
-                                <a class="nav-link text-white" asp-controller="QuanLyNhanSu" asp-action="Index">
-                                    <i class="bi bi-people-fill"></i> Trang QL Nhân sự
+                                <a class="nav-link text-white" asp-controller="QuanLyNhanSu" asp-action="ThongTinVaXepLoai">
+                                    <i class="bi bi-person-badge"></i> Thông tin cá nhân và xếp loại
                                 </a>
                             </li>
-                        }
-
-                        @if (isDepartmentHead)
-                        {
                             <li class="nav-item">
-                                <a class="nav-link text-white" asp-controller="QuanLyPhongBan" asp-action="Index">
-                                    <i class="bi bi-person-workspace"></i> Trang trưởng phòng
+                                <a class="nav-link text-white" asp-controller="QuanLyNhanSu" asp-action="Index">
+                                    <i class="bi bi-people-fill"></i> Quản lý nhân viên
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link text-white" asp-controller="QuanLyNhanSu" asp-action="DanhGiaCaNhan">
+                                    <i class="bi bi-graph-up"></i> Xem đánh giá cá nhân
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link text-white" asp-controller="QuanLyNhanSu" asp-action="YeuCauChinhSuaThongTin">
+                                    <i class="bi bi-pencil-square"></i> Yêu cầu chỉnh sửa thông tin
                                 </a>
                             </li>
                         }
@@ -141,11 +237,80 @@
                             </li>
                         }
 
+                        @if (isDepartmentHead)
+                        {
+                            <li class="nav-item mt-3 text-secondary small">
+                                QUẢN LÝ PHÒNG
+                            </li>
+
+                            <li class="nav-item">
+                                <a class="nav-link text-white" asp-controller="NhanVien" asp-action="ThongTinDonViPhuTrach">
+                                    <i class="bi bi-building"></i> Thông tin phòng đang phụ trách
+                                </a>
+                            </li>
+
+                            <li class="nav-item">
+                                <a class="nav-link text-white" asp-controller="NhanVien" asp-action="DanhGiaDonViQuanLy">
+                                    <i class="bi bi-bar-chart"></i> Xem đánh giá phòng quản lý
+                                </a>
+                            </li>
+                        }
+
+                        @if (isTeamLead)
+                        {
+                            <li class="nav-item mt-3 text-secondary small">
+                                QUẢN LÝ NHÓM
+                            </li>
+
+                            <li class="nav-item">
+                                <a class="nav-link text-white" asp-controller="NhanVien" asp-action="ThongTinDonViPhuTrach">
+                                    <i class="bi bi-diagram-3"></i> Thông tin nhóm đang phụ trách
+                                </a>
+                            </li>
+
+                            <li class="nav-item">
+                                <a class="nav-link text-white" asp-controller="NhanVien" asp-action="DanhGiaDonViQuanLy">
+                                    <i class="bi bi-graph-up-arrow"></i> Xem đánh giá nhóm quản lý
+                                </a>
+                            </li>
+                        }
+
                         @if (isDepartmentHead || isTeamLead)
                         {
+                            <li class="nav-item mt-3 text-secondary small">
+                                CÔNG VIỆC CÁ NHÂN
+                            </li>
+
                             <li class="nav-item">
-                                <a class="nav-link text-white" asp-controller="Phancongcongviecs" asp-action="Create">
-                                    <i class="bi bi-diagram-3"></i> Phân công công việc
+                                <a class="nav-link text-white" asp-controller="NhanVien" asp-action="DuAnCongViecDangThamGia">
+                                    <i class="bi bi-kanban"></i> Dự án/công việc đang tham gia
+                                </a>
+                            </li>
+
+                            <li class="nav-item">
+                                <a class="nav-link text-white" asp-controller="NhanVien" asp-action="DuAnDaThamGia">
+                                    <i class="bi bi-folder-check"></i> Dự án/công việc đã tham gia
+                                </a>
+                            </li>
+
+                            <li class="nav-item">
+                                <a class="nav-link text-white" asp-controller="NhanVien" asp-action="ThongTinVaXepLoai">
+                                    <i class="bi bi-person-vcard"></i> Thông tin cá nhân và xếp loại
+                                </a>
+                            </li>
+
+                            <li class="nav-item">
+                                <a class="nav-link text-white" asp-controller="Congviecs" asp-action="XacNhanTienDo">
+                                    <i class="bi bi-check2-square"></i> Duyệt tiến độ
+                                </a>
+                            </li>
+                        }
+
+                        @if (isDepartmentManager)
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link text-white" asp-controller="Congviecs" asp-action="Index">
+                                    <i class="bi bi-diagram-3"></i> Chọn công việc để giao
                                 </a>
                             </li>
 
@@ -159,8 +324,26 @@
                         @if (!isHrManager && !isDepartmentHead && !isDepartmentManager && !isTeamLead)
                         {
                             <li class="nav-item">
-                                <a class="nav-link text-white" asp-controller="NhanVien" asp-action="Index">
-                                    <i class="bi bi-house-door"></i> Trang nhân viên
+                                <a class="nav-link text-white" asp-controller="NhanVien" asp-action="ThongTinVaXepLoai">
+                                    <i class="bi bi-person-vcard"></i> Thông tin cá nhân và xếp loại
+                                </a>
+                            </li>
+
+                            <li class="nav-item">
+                                <a class="nav-link text-white" asp-controller="NhanVien" asp-action="DuAnCongViecDangThamGia">
+                                    <i class="bi bi-kanban"></i> Dự án/công việc đang tham gia
+                                </a>
+                            </li>
+
+                            <li class="nav-item">
+                                <a class="nav-link text-white" asp-controller="NhanVien" asp-action="DuAnDaThamGia">
+                                    <i class="bi bi-folder-check"></i> Dự án đã tham gia
+                                </a>
+                            </li>
+
+                            <li class="nav-item">
+                                <a class="nav-link text-white" asp-controller="NhanVien" asp-action="DanhGiaCaNhan">
+                                    <i class="bi bi-graph-up-arrow"></i> Xem đánh giá cá nhân
                                 </a>
                             </li>
                         }
@@ -191,14 +374,14 @@
 
                         <div class="app-topbar-title-wrap">
                             <div class="app-topbar-title">@pageTitle</div>
-                            <div class="app-topbar-meta">@currentController / @currentAction</div>
+                            <div class="app-topbar-meta">@controllerDisplayName / @actionDisplayName</div>
                         </div>
                     </div>
 
                     <div class="ms-auto d-flex align-items-center">
 
                         <span class="me-3">
-                            Xin chào <strong>@User.Identity?.Name</strong>
+                            Xin chào <strong>@displayName</strong> - <span class="text-muted">@displayRole</span>
                         </span>
 
                         <a class="btn btn-outline-danger btn-sm"
@@ -228,6 +411,8 @@
     }
 
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
+    <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/js/adminlte.min.js"></script>
 
@@ -272,6 +457,61 @@
             }
 
             navLinks.forEach(link => link.addEventListener("click", closeSidebar));
+
+            if (window.jQuery && window.jQuery.validator) {
+                window.jQuery.extend(window.jQuery.validator.messages, {
+                    required: "Trường này là bắt buộc.",
+                    remote: "Vui lòng sửa trường này.",
+                    email: "Địa chỉ email không hợp lệ.",
+                    url: "Đường dẫn không hợp lệ.",
+                    date: "Ngày không hợp lệ.",
+                    dateISO: "Ngày không hợp lệ (yyyy-mm-dd).",
+                    number: "Vui lòng nhập số hợp lệ.",
+                    digits: "Chỉ được nhập chữ số.",
+                    creditcard: "Số thẻ không hợp lệ.",
+                    equalTo: "Giá trị nhập lại không khớp.",
+                    maxlength: window.jQuery.validator.format("Vui lòng không nhập quá {0} ký tự."),
+                    minlength: window.jQuery.validator.format("Vui lòng nhập ít nhất {0} ký tự."),
+                    rangelength: window.jQuery.validator.format("Vui lòng nhập từ {0} đến {1} ký tự."),
+                    range: window.jQuery.validator.format("Giá trị phải nằm trong khoảng từ {0} đến {1}.") ,
+                    max: window.jQuery.validator.format("Giá trị phải nhỏ hơn hoặc bằng {0}."),
+                    min: window.jQuery.validator.format("Giá trị phải lớn hơn hoặc bằng {0}.")
+                });
+            }
+
+            // Add required marker and validate fields immediately after user input ends.
+            const forms = document.querySelectorAll("form");
+            forms.forEach(form => {
+                form.querySelectorAll("input, select, textarea").forEach(input => {
+                    const hasRequired =
+                        input.hasAttribute("required") ||
+                        input.getAttribute("data-val-required") !== null;
+
+                    if (hasRequired && input.id) {
+                        const label = form.querySelector(`label[for="${input.id}"]`);
+                        if (label && !label.querySelector(".required-star")) {
+                            const mark = document.createElement("span");
+                            mark.className = "required-star text-danger ms-1";
+                            mark.textContent = "*";
+                            label.appendChild(mark);
+                        }
+                    }
+
+                    const isNumeric = input.type === "number" || input.getAttribute("data-val-number") !== null;
+                    if (isNumeric && !input.getAttribute("inputmode")) {
+                        input.setAttribute("inputmode", "decimal");
+                    }
+                });
+
+                if (window.jQuery) {
+                    const $form = window.jQuery(form);
+                    $form.find("input, select, textarea").on("blur change input", function () {
+                        if ($form.data("validator")) {
+                            window.jQuery(this).valid();
+                        }
+                    });
+                }
+            });
         })();
     </script>
 

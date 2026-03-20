@@ -1,0 +1,184 @@
+@model QL_HieuSuat.Models.ViewModels.NhanVienDanhGiaDonViQuanLyViewModel
+
+@{
+    ViewData["Title"] = "Đánh giá đơn vị đang quản lý";
+
+    var selectedPeriod = Model.KyDangXem;
+    var xuatSacCount = Model.DanhGiaNhanVien.Count(x => x.XepLoai == "Xuất sắc");
+    var totCount = Model.DanhGiaNhanVien.Count(x => x.XepLoai == "Tốt");
+    var canCaiThienCount = Model.DanhGiaNhanVien.Count(x => x.XepLoai == "Cần cải thiện");
+    var phongItems = Model.DanhGiaNhanVien.Where(x => x.CoTrongPhongQuanLy).OrderBy(x => x.HoTen).ToList();
+    var nhomItems = Model.DanhGiaNhanVien.Where(x => x.CoTrongNhomQuanLy).OrderBy(x => x.HoTen).ToList();
+}
+
+<div class="container-fluid">
+    <div class="mb-4 p-4 rounded-3 text-white" style="background: linear-gradient(135deg, #20c997 0%, #13795b 100%);">
+        <h3 class="mb-1">Đánh giá đơn vị đang quản lý</h3>
+        <p class="mb-0 opacity-75">Dữ liệu được tách riêng thành 2 phần: theo Phòng và theo Nhóm.</p>
+    </div>
+
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3 align-items-end">
+                <div class="col-lg-4 col-md-6">
+                    <label class="form-label">Kỳ đánh giá</label>
+                    <select class="form-select" name="ky">
+                        @if (!Model.DanhSachKy.Any())
+                        {
+                            <option value="">Chưa có dữ liệu kỳ đánh giá</option>
+                        }
+                        else
+                        {
+                            @foreach (var period in Model.DanhSachKy)
+                            {
+                                var selected = string.Equals(period, selectedPeriod, StringComparison.OrdinalIgnoreCase);
+                                <option value="@period" selected="@selected">@period</option>
+                            }
+                        }
+                    </select>
+                </div>
+                <div class="col-lg-3 col-md-4">
+                    <button type="submit" class="btn btn-primary w-100">Xem dữ liệu</button>
+                </div>
+                <div class="col-lg-5 col-md-12 text-md-end text-muted">
+                    Người quản lý: <strong>@(string.IsNullOrWhiteSpace(Model.TenQuanLy) ? "Chưa xác định" : Model.TenQuanLy)</strong>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-lg-4 col-md-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="text-muted small">Nhân viên xếp loại Xuất sắc</div>
+                    <div class="fs-3 fw-bold text-success">@xuatSacCount</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4 col-md-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="text-muted small">Nhân viên xếp loại Tốt</div>
+                    <div class="fs-3 fw-bold text-primary">@totCount</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4 col-md-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="text-muted small">Nhân viên cần cải thiện</div>
+                    <div class="fs-3 fw-bold text-danger">@canCaiThienCount</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-3">
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Đánh giá theo phạm vi Phòng</h5>
+                    <span class="badge bg-primary">@phongItems.Count nhân viên</span>
+                </div>
+                <div class="card-body p-0">
+                    @if (phongItems.Any())
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-striped align-middle mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Mã NV</th>
+                                        <th>Họ tên</th>
+                                        <th>Phòng</th>
+                                        <th class="text-end">Điểm</th>
+                                        <th>Xếp loại</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var item in phongItems)
+                                    {
+                                        var badgeClass = item.XepLoai switch
+                                        {
+                                            "Xuất sắc" => "bg-success",
+                                            "Tốt" => "bg-primary",
+                                            "Khá" => "bg-info text-dark",
+                                            "Trung bình" => "bg-warning text-dark",
+                                            "Cần cải thiện" => "bg-danger",
+                                            _ => "bg-secondary"
+                                        };
+
+                                        <tr>
+                                            <td>@item.MaNhanVien</td>
+                                            <td>@item.HoTen</td>
+                                            <td>@(string.IsNullOrWhiteSpace(item.TenPhongBan) ? "-" : item.TenPhongBan)</td>
+                                            <td class="text-end">@(item.DiemTongHop?.ToString("0.##") ?? "-")</td>
+                                            <td><span class="badge @badgeClass">@item.XepLoai</span></td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="p-4 text-muted">Không có dữ liệu đánh giá thuộc phạm vi Phòng.</div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Đánh giá theo phạm vi Nhóm</h5>
+                    <span class="badge bg-success">@nhomItems.Count nhân viên</span>
+                </div>
+                <div class="card-body p-0">
+                    @if (nhomItems.Any())
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-striped align-middle mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Mã NV</th>
+                                        <th>Họ tên</th>
+                                        <th>Nhóm thuộc phạm vi</th>
+                                        <th class="text-end">Điểm</th>
+                                        <th>Xếp loại</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var item in nhomItems)
+                                    {
+                                        var badgeClass = item.XepLoai switch
+                                        {
+                                            "Xuất sắc" => "bg-success",
+                                            "Tốt" => "bg-primary",
+                                            "Khá" => "bg-info text-dark",
+                                            "Trung bình" => "bg-warning text-dark",
+                                            "Cần cải thiện" => "bg-danger",
+                                            _ => "bg-secondary"
+                                        };
+
+                                        <tr>
+                                            <td>@item.MaNhanVien</td>
+                                            <td>@item.HoTen</td>
+                                            <td>@(string.IsNullOrWhiteSpace(item.DanhSachNhomQuanLy) ? "-" : item.DanhSachNhomQuanLy)</td>
+                                            <td class="text-end">@(item.DiemTongHop?.ToString("0.##") ?? "-")</td>
+                                            <td><span class="badge @badgeClass">@item.XepLoai</span></td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="p-4 text-muted">Không có dữ liệu đánh giá thuộc phạm vi Nhóm.</div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -4,7 +4,7 @@
     ViewData["Title"] = "Chi tiết công việc";
     var isAdmin = User.IsInRole("Admin");
     var isHrManager = User.IsInRole("QuanLyNhanSu");
-    var canAssign = isAdmin || User.IsInRole("TruongPhong") || User.IsInRole("TruongNhom");
+    var canAssign = isAdmin || User.IsInRole("TruongPhong") || User.IsInRole("TruongNhom") || User.IsInRole("QuanLyPhongBan");
     var canApprove = User.IsInRole("TruongPhong") || User.IsInRole("TruongNhom");
     var canUpdateProgress = User.IsInRole("NhanVien") || User.IsInRole("TruongPhong") || User.IsInRole("TruongNhom");
     var currentNhanVienId = ViewBag.CurrentNhanVienId is int value ? value : (int?)null;
@@ -73,6 +73,18 @@
                     else if (Model.Matrangthai == 2)
                     {
                         <span class="badge bg-warning">Đang thực hiện</span>
+                    }
+                    else if (Model.Matrangthai == 5)
+                    {
+                        <span class="badge bg-danger">Trễ</span>
+                    }
+                    else if (Model.Matrangthai == 6)
+                    {
+                        <span class="badge bg-dark">Không duyệt</span>
+                    }
+                    else if (Model.Matrangthai == 7)
+                    {
+                        <span class="badge bg-secondary">Tạm dừng</span>
                     }
                     else
                     {
@@ -519,12 +531,16 @@
                         </td>
 
                         <td class="text-center">
-                            @if (canUpdateProgress)
+                            @if (canUpdateProgress && cv.Matrangthai != 3)
                             {
                                 <input type="checkbox"
                                        class="form-check-input updateStatus"
                                        data-id="@cv.Macongviec"
-                                       @(cv.Matrangthai == 3 ? "checked" : "") />
+                                        @((cv.Matrangthai == 3 || cv.Matrangthai == 4) ? "checked" : "") />
+                            }
+                            else if (cv.Matrangthai == 3)
+                            {
+                                <span class="text-muted">Đã duyệt</span>
                             }
                             else
                             {
@@ -648,12 +664,16 @@
                                     </td>
 
                                     <td class="text-center">
-                                        @if (canUpdateProgress && isCurrentAssignee)
+                                        @if (canUpdateProgress && isCurrentAssignee && Model.Matrangthai != 3)
                                         {
                                             <input type="checkbox"
                                                    class="form-check-input updateStatus"
                                                    data-id="@Model.Macongviec"
-                                                   @(Model.Matrangthai == 3 ? "checked" : "") />
+                                                  @((Model.Matrangthai == 3 || Model.Matrangthai == 4) ? "checked" : "") />
+                                        }
+                                        else if (Model.Matrangthai == 3)
+                                        {
+                                            <span class="text-muted">Đã duyệt</span>
                                         }
                                         else if (canUpdateProgress)
                                         {
@@ -763,7 +783,8 @@
 
             </a>
         }
-        else if (isHrManager)
+        else
+        if (isHrManager)
         {
             <a asp-controller="QuanLyNhanSu"
                asp-action="Index"
@@ -850,7 +871,7 @@
                             location.reload();
                         }
                         else {
-                            alert("Không thể cập nhật");
+                            alert(res.message || "Không thể cập nhật");
                         }
 
                     },

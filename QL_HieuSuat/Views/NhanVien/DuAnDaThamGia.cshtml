@@ -1,0 +1,50 @@
+@model QL_HieuSuat.Models.ViewModels.NhanVienDuAnDaThamGiaViewModel
+
+@{
+    ViewData["Title"] = "Dự án đã tham gia";
+}
+
+<div class="container-fluid">
+    <div class="mb-4 p-4 rounded-3 text-white" style="background: linear-gradient(135deg, #6f42c1 0%, #432874 100%);">
+        <h3 class="mb-1">Dự án đã tham gia</h3>
+        <p class="mb-0 opacity-75">Danh sách các dự án đã kết thúc mà bạn từng tham gia.</p>
+    </div>
+
+    @if (Model.DuAnDaThamGia.Any())
+    {
+        <div class="row g-3">
+            @foreach (var duAn in Model.DuAnDaThamGia)
+            {
+                <div class="col-lg-6">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
+                                <h5 class="mb-0">@(string.IsNullOrWhiteSpace(duAn.TenDuAn) ? "Chưa đặt tên dự án" : duAn.TenDuAn)</h5>
+                                <span class="badge bg-success">Đã kết thúc</span>
+                            </div>
+
+                            <div class="text-muted small mb-3">
+                                Từ @(duAn.NgayBatDau?.ToString("dd/MM/yyyy") ?? "-") đến @(duAn.NgayKetThuc?.ToString("dd/MM/yyyy") ?? "-")
+                            </div>
+
+                            <div class="row g-2 mb-3">
+                                <div class="col-6"><div class="small text-muted">Tổng việc</div><div class="fw-semibold">@duAn.TongCongViec</div></div>
+                                <div class="col-6"><div class="small text-muted">Đã hoàn thành</div><div class="fw-semibold text-success">@duAn.HoanThanh</div></div>
+                                <div class="col-6"><div class="small text-muted">Chờ duyệt</div><div class="fw-semibold text-info">@duAn.ChoDuyet</div></div>
+                                <div class="col-6"><div class="small text-muted">Quá hạn</div><div class="fw-semibold text-danger">@duAn.QuaHan</div></div>
+                            </div>
+
+                            <a asp-controller="Duans" asp-action="Details" asp-route-id="@duAn.MaDuAn" class="btn btn-outline-primary btn-sm">Xem chi tiết dự án</a>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="card border-0 shadow-sm">
+            <div class="card-body text-muted">Chưa có dự án đã kết thúc mà bạn tham gia.</div>
+        </div>
+    }
+</div>

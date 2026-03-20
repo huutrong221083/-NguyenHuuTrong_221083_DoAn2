@@ -1,0 +1,76 @@
+@model QL_HieuSuat.Models.ViewModels.VerifyResetCodeViewModel
+
+@{
+    ViewData["Title"] = "Xác minh mã";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Xác minh mã</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="~/css/site.css" />
+</head>
+<body class="auth-body">
+    <div class="card shadow-lg auth-card">
+        <div class="card-body p-4">
+            <h4 class="text-center text-primary mb-4">Nhập mã xác nhận</h4>
+
+            <div class="alert alert-info">
+                Chúng tôi đã gửi mã xác nhận 6 chữ số tới email của bạn.
+            </div>
+
+            @if (TempData["Warning"] is string warning)
+            {
+                <div class="alert alert-warning">@warning</div>
+            }
+
+            @if (TempData["DevVerificationCode"] is string devCode)
+            {
+                <div class="alert alert-secondary">
+                    <div class="fw-bold">Mã xác nhận (chỉ hiển thị trong môi trường Development)</div>
+                    <div class="fs-4">@devCode</div>
+                </div>
+            }
+
+            <form asp-action="VerifyResetCode" method="post" novalidate>
+                @Html.AntiForgeryToken()
+                <div asp-validation-summary="ModelOnly" class="text-danger small mb-2"></div>
+
+                <div class="mb-3">
+                    <label asp-for="Email">Email</label>
+                    <input asp-for="Email" class="form-control" readonly />
+                    <span asp-validation-for="Email" class="text-danger small"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="VerificationCode">Mã xác nhận <span class="text-danger">*</span></label>
+                    <input asp-for="VerificationCode"
+                           class="form-control"
+                           maxlength="6"
+                           placeholder="Nhập mã 6 chữ số"
+                           inputmode="numeric"
+                           autocomplete="one-time-code" />
+                    <span asp-validation-for="VerificationCode" class="text-danger small"></span>
+                </div>
+
+                <div class="d-grid">
+                    <button type="submit" class="btn btn-primary">Xác minh mã</button>
+                </div>
+
+                <div class="text-center mt-3">
+                    <a asp-action="ForgotPassword">← Gửi lại email khác</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
+    <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
+</body>
+</html>

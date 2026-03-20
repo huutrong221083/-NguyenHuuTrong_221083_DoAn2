@@ -11,9 +11,11 @@ public class QuanLyPhongBanDashboardViewModel
     public int TongCongViec { get; set; }
     public int CongViecDangThucHien { get; set; }
     public int CongViecChoDuyet { get; set; }
+    public int CongViecHoanThanh { get; set; }
 
     public List<QuanLyPhongBanNhanVienItemViewModel> NhanViens { get; set; } = new();
     public List<QuanLyPhongBanCongViecItemViewModel> CongViecs { get; set; } = new();
+    public List<QuanLyPhongBanCongViecItemViewModel> CongViecHoanThanhList { get; set; } = new();
 }
 
 public class QuanLyPhongBanNhanVienItemViewModel

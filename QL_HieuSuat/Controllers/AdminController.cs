@@ -18,7 +18,6 @@ public class AdminController : Controller
         "QuanLyPhongBan",
         "TruongNhom",
         "QuanLyNhanSu",
-        "QuanLyDuAn",
         "Admin"
     };
 
@@ -208,7 +207,7 @@ public class AdminController : Controller
         {
             foreach (var error in result.Errors)
             {
-                ModelState.AddModelError(string.Empty, error.Description);
+                ModelState.AddModelError(string.Empty, TranslateIdentityError(error.Description));
             }
 
             await PopulateNhanVienSelectListAsync(model.MaNhanVien);
@@ -228,7 +227,7 @@ public class AdminController : Controller
 
             foreach (var error in roleResult.Errors)
             {
-                ModelState.AddModelError(string.Empty, error.Description);
+                ModelState.AddModelError(string.Empty, TranslateIdentityError(error.Description));
             }
 
             await _userManager.DeleteAsync(user);
@@ -373,7 +372,7 @@ public class AdminController : Controller
         {
             foreach (var error in updateResult.Errors)
             {
-                ModelState.AddModelError(string.Empty, error.Description);
+                ModelState.AddModelError(string.Empty, TranslateIdentityError(error.Description));
             }
 
             await PopulateNhanVienSelectListAsync(model.MaNhanVien);
@@ -389,7 +388,7 @@ public class AdminController : Controller
             {
                 foreach (var error in removeRolesResult.Errors)
                 {
-                    ModelState.AddModelError(string.Empty, error.Description);
+                    ModelState.AddModelError(string.Empty, TranslateIdentityError(error.Description));
                 }
 
                 await PopulateNhanVienSelectListAsync(model.MaNhanVien);
@@ -405,7 +404,7 @@ public class AdminController : Controller
         {
             foreach (var error in addRolesResult.Errors)
             {
-                ModelState.AddModelError(string.Empty, error.Description);
+                ModelState.AddModelError(string.Empty, TranslateIdentityError(error.Description));
             }
 
             await PopulateNhanVienSelectListAsync(model.MaNhanVien);
@@ -443,7 +442,7 @@ public class AdminController : Controller
         var deleteResult = await _userManager.DeleteAsync(user);
         if (!deleteResult.Succeeded)
         {
-            TempData["UploadError"] = string.Join("; ", deleteResult.Errors.Select(e => e.Description));
+            TempData["UploadError"] = string.Join("; ", deleteResult.Errors.Select(e => TranslateIdentityError(e.Description)));
             return RedirectToAction(nameof(DanhSachTaiKhoan));
         }
 
@@ -495,7 +494,6 @@ public class AdminController : Controller
             new() { Value = "QuanLyPhongBan", Text = "Quản lý phòng ban" },
             new() { Value = "TruongNhom", Text = "Trưởng nhóm" },
             new() { Value = "QuanLyNhanSu", Text = "Quản lý nhân sự" },
-            new() { Value = "QuanLyDuAn", Text = "Quản lý dự án" },
             new() { Value = "Admin", Text = "Admin" }
         };
 
@@ -505,5 +503,28 @@ public class AdminController : Controller
         }
 
         ViewBag.RoleOptions = roles;
+    }
+
+    private static string TranslateIdentityError(string? message)
+    {
+        if (string.IsNullOrWhiteSpace(message))
+        {
+            return "Có lỗi xác thực xảy ra.";
+        }
+
+        var text = message;
+        return text
+            .Replace("Username", "Tên đăng nhập", StringComparison.OrdinalIgnoreCase)
+            .Replace("User name", "Tên đăng nhập", StringComparison.OrdinalIgnoreCase)
+            .Replace("is already taken", "đã được sử dụng", StringComparison.OrdinalIgnoreCase)
+            .Replace("is already in use", "đã được sử dụng", StringComparison.OrdinalIgnoreCase)
+            .Replace("Passwords must be at least", "Mật khẩu phải có ít nhất", StringComparison.OrdinalIgnoreCase)
+            .Replace("characters.", "ký tự.", StringComparison.OrdinalIgnoreCase)
+            .Replace("Passwords must have at least one non alphanumeric character.", "Mật khẩu phải có ít nhất một ký tự đặc biệt.", StringComparison.OrdinalIgnoreCase)
+            .Replace("Passwords must have at least one lowercase ('a'-'z').", "Mật khẩu phải có ít nhất một chữ thường (a-z).", StringComparison.OrdinalIgnoreCase)
+            .Replace("Passwords must have at least one uppercase ('A'-'Z').", "Mật khẩu phải có ít nhất một chữ hoa (A-Z).", StringComparison.OrdinalIgnoreCase)
+            .Replace("Passwords must have at least one digit ('0'-'9').", "Mật khẩu phải có ít nhất một chữ số (0-9).", StringComparison.OrdinalIgnoreCase)
+            .Replace("Invalid token.", "Mã xác thực không hợp lệ.", StringComparison.OrdinalIgnoreCase)
+            .Replace("is invalid", "không hợp lệ", StringComparison.OrdinalIgnoreCase);
     }
 }
