@@ -244,3 +244,20 @@ Hệ thống đã hoàn thành các kết quả chính sau:
 
 🌐 14. Hệ thống chạy online
 https://qlhieusuat.huutrong.id.vn
+
+ Tài khoản đăng nhập:
+ - Admin:
+        + Tên đăng nhập: huutrongk24@gmail.com
+        + Mật khẩu: Trong@123
+ - Quản lý nhân sự:
+        + Tên đăng nhập: nv20@demo.local
+        + Mật khẩu: User20@
+ - Trưởng phòng:
+        + Tên đăng nhập: nv02@demo.local
+        + Mật khẩu: User02@
+ - Trưởng nhóm:
+        + Tên đăng nhập: nv07@demo.local
+        + Mật khẩu: User07@
+ - Quản lý nhân sự:
+        + Tên đăng nhập: nv10@demo.local
+        + Mật khẩu: User10@
