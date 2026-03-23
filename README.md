@@ -250,14 +250,14 @@ https://qlhieusuat.huutrong.id.vn
         + Tên đăng nhập: huutrongk24@gmail.com
         + Mật khẩu: Trong@123
  - Quản lý nhân sự:
-        + Tên đăng nhập: nv20@demo.local
+        + Tên đăng nhập: nam272519@gmail.com
         + Mật khẩu: User20@
  - Trưởng phòng:
-        + Tên đăng nhập: nv02@demo.local
+        + Tên đăng nhập: nv02demo@gmail.com
         + Mật khẩu: User02@
  - Trưởng nhóm:
-        + Tên đăng nhập: nv07@demo.local
+        + Tên đăng nhập: l45360979@gmail.com
         + Mật khẩu: User07@
- - Quản lý nhân sự:
-        + Tên đăng nhập: nv10@demo.local
+ - Nhân viên:
+        + Tên đăng nhập: m71718383@gmail.com
         + Mật khẩu: User10@
