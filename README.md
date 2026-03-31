@@ -153,10 +153,10 @@ Admin:
 
 Người dùng:
 
-- nv20@demo.local / User20@
-- nv02@demo.local / User02@
-- nv07@demo.local / User07@
-- nv10@demo.local / User10@
+- nam272519@gmail.com / User20@ (QL nhân sự)
+- nv02demo@gmail.com / User02@ (Trưởng phòng)
+- l45360979@gmail.com / User07@ (Trưởng nhóm)
+- m71718383@gmail.com / User10@ (Nhân viên)
 
 ## 7. Kết quả đạt được
 
